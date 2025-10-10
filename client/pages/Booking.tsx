@@ -285,6 +285,22 @@ export default function Booking() {
   const [showNonThursdayPopup, setShowNonThursdayPopup] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
 
+  // Populate customer info from authenticated user
+  useEffect(() => {
+    if (currentUser && userData) {
+      setBookingData(prev => ({
+        ...prev,
+        customerInfo: {
+          name: userData.firstName && userData.lastName 
+            ? `${userData.firstName} ${userData.lastName}` 
+            : currentUser.displayName || "",
+          email: currentUser.email || "",
+          phone: userData.phone || "",
+        }
+      }));
+    }
+  }, [currentUser, userData]);
+
   useEffect(() => {
     fetch("/api/payment-settings")
       .then((res) => res.json())
@@ -1364,9 +1380,9 @@ export default function Booking() {
                       onClick={() => setStep(4)}
                       className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                       disabled={
-                        !bookingData.customerInfo.name ||
-                        !bookingData.customerInfo.email ||
-                        !bookingData.customerInfo.phone
+                        !(bookingData.customerInfo.name || currentUser?.displayName || userData?.name) ||
+                        !(bookingData.customerInfo.email || currentUser?.email || userData?.email) ||
+                        !(bookingData.customerInfo.phone || userData?.phone)
                       }
                     >
                       Continue to Payment
