@@ -11,16 +11,16 @@
     ]
   },
   "scripts": {
-    "dev": "vite --config vite.config.js --port 8080",
+    "dev": "npx vite --config vite.config.js --port 8080",
     "build": "npm run build:client",
-    "build:client": "vite build",
-    "build:server": "vite build --config vite.config.server.ts",
+    "build:client": "npx vite build",
+    "build:server": "npx vite build --config vite.config.server.ts",
     "start": "node dist/server/node-build.mjs",
-    "test": "vitest --run",
-    "format.fix": "prettier --write .",
-    "typecheck": "tsc",
-    "build:user": "vite build --config vite.config.ts",
-    "build:admin": "vite build --config vite.config.ts"
+    "test": "npx vitest --run",
+    "format.fix": "npx prettier --write .",
+    "typecheck": "npx tsc",
+    "build:user": "npx vite build --config vite.config.ts",
+    "build:admin": "npx vite build --config vite.config.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.6.0",
