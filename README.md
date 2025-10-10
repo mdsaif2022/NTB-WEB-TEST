@@ -1,4 +1,4 @@
-# Explore Bangladesh - Tourism Platform
+# Explore Bangladesh - Tourism Platform (NTB-WEB-TEST)
 
 A modern tourism platform built with React, Vite, and Firebase for exploring Bangladesh's beautiful destinations.
 
@@ -33,8 +33,8 @@ A modern tourism platform built with React, Vite, and Firebase for exploring Ban
 
 1. Clone the repository:
 ```bash
-git clone <your-repo-url>
-cd builder-echo-forge-main
+git clone https://github.com/mdsaif2022/NTB-WEB-TEST.git
+cd NTB-WEB-TEST
 ```
 
 2. Install dependencies:
@@ -44,7 +44,7 @@ npm install
 
 3. Set up environment variables:
 ```bash
-cp .env.example .env.local
+cp env.example .env.local
 ```
 
 4. Configure Firebase:
@@ -62,7 +62,7 @@ The app will be available at `http://localhost:8080`
 ## Project Structure
 
 ```
-builder-echo-forge-main/
+NTB-WEB-TEST/
 ├── client/                 # Frontend React application
 │   ├── components/        # Reusable UI components
 │   ├── pages/            # Page components
