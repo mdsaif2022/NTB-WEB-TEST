@@ -5,6 +5,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import { settingsService } from "@/lib/firebaseServices";
 
 interface SiteSettings {
   siteName: string;
@@ -101,31 +102,106 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load settings from localStorage on mount
+  // Load settings from Firebase Realtime Database
   useEffect(() => {
-    const savedSettings = localStorage.getItem("siteSettings");
-    if (savedSettings) {
+    const loadSettings = async () => {
+      console.log('SettingsContext: Starting to load settings...');
+      
+      // Set a timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.log('SettingsContext: Timeout reached, using localStorage fallback');
+        const savedSettings = localStorage.getItem("siteSettings");
+        if (savedSettings) {
+          try {
+            const parsed = JSON.parse(savedSettings);
+            setSettings({ ...defaultSettings, ...parsed });
+          } catch (error) {
+            console.error("Error loading settings from localStorage:", error);
+          }
+        }
+        setIsLoading(false);
+      }, 5000); // 5 second timeout
+      
       try {
-        const parsed = JSON.parse(savedSettings);
-        setSettings({ ...defaultSettings, ...parsed });
+        const firebaseSettings = await settingsService.getSettings();
+        clearTimeout(timeoutId);
+        console.log('SettingsContext: Firebase settings loaded:', firebaseSettings);
+        
+        if (firebaseSettings) {
+          setSettings({ ...defaultSettings, ...firebaseSettings });
+        } else {
+          // Fallback to localStorage if no Firebase data
+          console.log('SettingsContext: No Firebase data, using localStorage fallback');
+          const savedSettings = localStorage.getItem("siteSettings");
+          if (savedSettings) {
+            try {
+              const parsed = JSON.parse(savedSettings);
+              setSettings({ ...defaultSettings, ...parsed });
+              // Save to Firebase for future use
+              await settingsService.updateSettings(parsed);
+            } catch (error) {
+              console.error("Error loading settings from localStorage:", error);
+            }
+          }
+        }
       } catch (error) {
-        console.error("Error loading settings from localStorage:", error);
+        clearTimeout(timeoutId);
+        console.error('SettingsContext: Error loading settings:', error);
+        // Fallback to localStorage
+        const savedSettings = localStorage.getItem("siteSettings");
+        if (savedSettings) {
+          try {
+            const parsed = JSON.parse(savedSettings);
+            setSettings({ ...defaultSettings, ...parsed });
+          } catch (error) {
+            console.error("Error loading settings from localStorage:", error);
+          }
+        }
+      } finally {
+        console.log('SettingsContext: Loading completed, setting loading to false');
+        setIsLoading(false);
       }
-    }
+    };
+
+    loadSettings();
   }, []);
 
-  const updateSettings = (newSettings: Partial<SiteSettings>) => {
+  // Listen to Firebase Realtime Database changes
+  useEffect(() => {
+    const unsubscribe = settingsService.onSettingsChange((firebaseSettings) => {
+      if (firebaseSettings) {
+        console.log('SettingsContext: Real-time update received:', firebaseSettings);
+        setSettings({ ...defaultSettings, ...firebaseSettings });
+        // Also save to localStorage as backup
+        localStorage.setItem("siteSettings", JSON.stringify(firebaseSettings));
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setIsLoading(true);
     const updatedSettings = { ...settings, ...newSettings };
     setSettings(updatedSettings);
 
-    // Save to localStorage
+    // Save to localStorage as backup
     localStorage.setItem("siteSettings", JSON.stringify(updatedSettings));
 
-    // Simulate API call delay
-    setTimeout(() => {
+    try {
+      // Save to Firebase Realtime Database
+      const success = await settingsService.updateSettings(updatedSettings);
+      if (success) {
+        console.log('SettingsContext: Settings updated successfully in Firebase');
+        // Firebase listener will update the state automatically
+      } else {
+        console.error('SettingsContext: Failed to update settings in Firebase');
+      }
+    } catch (error) {
+      console.error('SettingsContext: Error updating settings:', error);
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (
