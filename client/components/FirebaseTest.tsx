@@ -3,12 +3,15 @@ import { realtimeDb } from '@/lib/firebaseConfig';
 import { ref, set, get, push, onValue, off } from 'firebase/database';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { firebaseDiagnostics, DiagnosticResult } from '@/lib/firebaseDiagnostics';
 
 const FirebaseTest: React.FC = () => {
   const [testResults, setTestResults] = useState<string[]>([]);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [bookings, setBookings] = useState<any[]>([]);
   const [blogs, setBlogs] = useState<any[]>([]);
+  const [diagnosticResults, setDiagnosticResults] = useState<DiagnosticResult[]>([]);
+  const [isRunningDiagnostics, setIsRunningDiagnostics] = useState(false);
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -191,6 +194,65 @@ const FirebaseTest: React.FC = () => {
     }
   };
 
+  const runDiagnostics = async () => {
+    setIsRunningDiagnostics(true);
+    addLog('🔍 Running comprehensive Firebase diagnostics...');
+    
+    try {
+      const results = await firebaseDiagnostics.runAllTests();
+      setDiagnosticResults(results);
+      
+      const successCount = results.filter(r => r.success).length;
+      const totalCount = results.length;
+      
+      addLog(`✅ Diagnostics completed: ${successCount}/${totalCount} tests passed`);
+      
+      results.forEach(result => {
+        const icon = result.success ? '✅' : '❌';
+        addLog(`${icon} ${result.test}: ${result.message}`);
+        if (result.details) {
+          addLog(`   Details: ${JSON.stringify(result.details)}`);
+        }
+      });
+    } catch (error: any) {
+      addLog(`❌ Diagnostics failed: ${error.message}`);
+    } finally {
+      setIsRunningDiagnostics(false);
+    }
+  };
+
+  const testBookingOperations = async () => {
+    addLog('🔍 Testing booking operations...');
+    
+    try {
+      const results = await firebaseDiagnostics.testBookingOperations();
+      setDiagnosticResults(results);
+      
+      results.forEach(result => {
+        const icon = result.success ? '✅' : '❌';
+        addLog(`${icon} ${result.test}: ${result.message}`);
+      });
+    } catch (error: any) {
+      addLog(`❌ Booking operations test failed: ${error.message}`);
+    }
+  };
+
+  const testBlogOperations = async () => {
+    addLog('🔍 Testing blog operations...');
+    
+    try {
+      const results = await firebaseDiagnostics.testBlogOperations();
+      setDiagnosticResults(results);
+      
+      results.forEach(result => {
+        const icon = result.success ? '✅' : '❌';
+        addLog(`${icon} ${result.test}: ${result.message}`);
+      });
+    } catch (error: any) {
+      addLog(`❌ Blog operations test failed: ${error.message}`);
+    }
+  };
+
   const setupRealtimeListeners = () => {
     addLog('Setting up real-time listeners...');
     
@@ -261,9 +323,18 @@ const FirebaseTest: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             <Button onClick={testConnection} variant="outline" size="sm">
               Test Connection
+            </Button>
+            <Button onClick={runDiagnostics} variant="outline" size="sm" disabled={isRunningDiagnostics}>
+              {isRunningDiagnostics ? 'Running...' : 'Run Diagnostics'}
+            </Button>
+            <Button onClick={testBookingOperations} variant="outline" size="sm">
+              Test Bookings
+            </Button>
+            <Button onClick={testBlogOperations} variant="outline" size="sm">
+              Test Blogs
             </Button>
             <Button onClick={testBookingWrite} variant="outline" size="sm">
               Test Booking Write
@@ -287,6 +358,30 @@ const FirebaseTest: React.FC = () => {
               </div>
             ))}
           </div>
+
+          {diagnosticResults.length > 0 && (
+            <div className="mt-4">
+              <h3 className="font-semibold mb-2">Diagnostic Results:</h3>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {diagnosticResults.map((result, index) => (
+                  <div key={index} className={`p-2 rounded text-sm ${result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                    <div className="flex items-center space-x-2">
+                      <span className={result.success ? 'text-green-600' : 'text-red-600'}>
+                        {result.success ? '✅' : '❌'}
+                      </span>
+                      <span className="font-medium">{result.test}</span>
+                    </div>
+                    <div className="text-gray-600 mt-1">{result.message}</div>
+                    {result.details && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        Details: {JSON.stringify(result.details)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

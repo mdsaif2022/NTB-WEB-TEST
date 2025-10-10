@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "tours": {
+      ".read": true,
+      ".write": true
+    },
+    "blogs": {
+      ".read": true,
+      ".write": true
+    },
+    "bookings": {
+      ".read": true,
+      ".write": true
+    },
+    "settings": {
+      ".read": true,
+      ".write": true
+    },
+    "notifications": {
+      ".read": true,
+      ".write": true
+    },
+    "users": {
+      ".read": true,
+      ".write": true
+    },
+    "popupAds": {
+      ".read": true,
+      ".write": true
+    },
+    "test": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
