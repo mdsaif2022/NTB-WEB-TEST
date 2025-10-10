@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Development files
+.env.local
+.env.development.local
+.env.test.local
+
+# Build artifacts
+dist/
+build/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Server files (not needed for client deployment)
+server/
+netlify/
+
+# Documentation
+*.md
+!README.md
