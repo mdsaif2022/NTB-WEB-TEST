@@ -45,6 +45,7 @@ import DemoModeBanner from "./components/DemoModeBanner";
 import PopupAds from "./components/PopupAds";
 import { PopupAdsProvider } from "./contexts/PopupAdsContext";
 import { isDemoConfig } from "./lib/firebaseConfig";
+import FirebaseTest from "./components/FirebaseTest";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,7 @@ const App = () => (
                         <Route path="/blog/submit" element={<BlogSubmission />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/notifications" element={<Notifications />} />
+                        <Route path="/firebase-test" element={<FirebaseTest />} />
 
                         {/* Admin Routes */}
                         <Route path="/admin" element={<AdminLayout />}>
