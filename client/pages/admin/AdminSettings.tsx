@@ -278,7 +278,7 @@ export default function AdminSettings() {
                     Site Description
                   </label>
                   <Textarea
-                    value={settings.siteDescription}
+                    value={settings?.siteDescription || ""}
                     onChange={(e) =>
                       handleSettingChange("siteDescription", e.target.value)
                     }
@@ -331,7 +331,7 @@ export default function AdminSettings() {
                   </label>
                   <Input
                     type="email"
-                    value={settings.contactEmail}
+                    value={settings?.contactEmail || ""}
                     onChange={(e) =>
                       handleSettingChange("contactEmail", e.target.value)
                     }
@@ -345,7 +345,7 @@ export default function AdminSettings() {
                   </label>
                   <Input
                     type="email"
-                    value={settings.supportEmail}
+                    value={settings?.supportEmail || ""}
                     onChange={(e) =>
                       handleSettingChange("supportEmail", e.target.value)
                     }
@@ -358,7 +358,7 @@ export default function AdminSettings() {
                     Phone Number
                   </label>
                   <Input
-                    value={settings.phone}
+                    value={settings?.phone || ""}
                     onChange={(e) =>
                       handleSettingChange("phone", e.target.value)
                     }

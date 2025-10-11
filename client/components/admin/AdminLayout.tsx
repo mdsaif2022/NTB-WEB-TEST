@@ -38,9 +38,9 @@ const navigation = [
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const { blogPosts } = useBlogs ? useBlogs() : { blogPosts: [] };
+  const { blogPosts } = useBlogs();
   const BLOGS_LAST_SEEN_KEY = "echoForgeBlogsLastSeen";
-  const latestBlogId = blogPosts.length > 0 ? Math.max(...blogPosts.map((p) => p.id)) : 0;
+  const latestBlogId = blogPosts?.length > 0 ? Math.max(...blogPosts.map((p) => p.id)) : 0;
   const [hasUnseenBlogs, setHasUnseenBlogs] = useState(false);
 
   useEffect(() => {
