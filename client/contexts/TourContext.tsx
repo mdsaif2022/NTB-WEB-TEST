@@ -179,9 +179,27 @@ const loadToursFromStorage = (): Tour[] => {
 // Helper function to save tours to localStorage
 const saveToursToStorage = (tours: Tour[]) => {
   try {
-    localStorage.setItem(TOURS_STORAGE_KEY, JSON.stringify(tours));
+    const toursData = JSON.stringify(tours);
+    
+    // Check if data is too large (localStorage limit is ~5-10MB)
+    if (toursData.length > 5 * 1024 * 1024) { // 5MB limit
+      console.warn("Tours data too large for localStorage, skipping save");
+      return;
+    }
+    
+    localStorage.setItem(TOURS_STORAGE_KEY, toursData);
   } catch (error) {
     console.error("Error saving tours to localStorage:", error);
+    
+    // If quota exceeded, try to clear old data and retry
+    if (error instanceof Error && error.name === 'QuotaExceededError') {
+      try {
+        localStorage.removeItem(TOURS_STORAGE_KEY);
+        console.log("Cleared old tours data due to quota exceeded");
+      } catch (clearError) {
+        console.error("Error clearing localStorage:", clearError);
+      }
+    }
   }
 };
 

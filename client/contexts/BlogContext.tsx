@@ -251,8 +251,23 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         setBlogPosts(firebaseBlogs);
         // Also save to localStorage as backup
         try {
-          localStorage.setItem(BLOGS_STORAGE_KEY, JSON.stringify(firebaseBlogs));
-        } catch (e) { console.error("Error saving blog posts to storage", e); }
+          const blogsData = JSON.stringify(firebaseBlogs);
+          if (blogsData.length > 5 * 1024 * 1024) { // 5MB limit
+            console.warn("Blogs data too large for localStorage, skipping save");
+          } else {
+            localStorage.setItem(BLOGS_STORAGE_KEY, blogsData);
+          }
+        } catch (e) { 
+          console.error("Error saving blog posts to storage", e);
+          if (e instanceof Error && e.name === 'QuotaExceededError') {
+            try {
+              localStorage.removeItem(BLOGS_STORAGE_KEY);
+              console.log("Cleared old blogs data due to quota exceeded");
+            } catch (clearError) {
+              console.error("Error clearing localStorage:", clearError);
+            }
+          }
+        }
       }
     });
 

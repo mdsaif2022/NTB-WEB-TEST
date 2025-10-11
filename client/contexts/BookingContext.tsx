@@ -214,8 +214,23 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
         setBookings(firebaseBookings);
         // Also save to localStorage as backup
         try {
-          localStorage.setItem(BOOKINGS_STORAGE_KEY, JSON.stringify(firebaseBookings));
-        } catch (e) { console.error("Error saving bookings to storage", e); }
+          const bookingsData = JSON.stringify(firebaseBookings);
+          if (bookingsData.length > 5 * 1024 * 1024) { // 5MB limit
+            console.warn("Bookings data too large for localStorage, skipping save");
+          } else {
+            localStorage.setItem(BOOKINGS_STORAGE_KEY, bookingsData);
+          }
+        } catch (e) { 
+          console.error("Error saving bookings to storage", e);
+          if (e instanceof Error && e.name === 'QuotaExceededError') {
+            try {
+              localStorage.removeItem(BOOKINGS_STORAGE_KEY);
+              console.log("Cleared old bookings data due to quota exceeded");
+            } catch (clearError) {
+              console.error("Error clearing localStorage:", clearError);
+            }
+          }
+        }
       }
     });
 
