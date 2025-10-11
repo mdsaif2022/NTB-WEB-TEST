@@ -41,6 +41,68 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { Helmet } from 'react-helmet-async';
 
+// Booking Card Component to avoid hook violations
+const BookingCard = ({ booking, tour, getStatusBadge }: { 
+  booking: any; 
+  tour: any; 
+  getStatusBadge: (status: string) => JSX.Element;
+}) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  
+  const handleDownloadImage = async () => {
+    if (cardRef.current) {
+      const dataUrl = await toPng(cardRef.current);
+      const link = document.createElement("a");
+      link.download = `booking-summary-${booking.id}.png`;
+      link.href = dataUrl;
+      link.click();
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-lg">{booking.tourName}</CardTitle>
+          {getStatusBadge(booking.status)}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div ref={cardRef} className="space-y-3">
+          <div className="flex items-center text-sm text-gray-600">
+            <Calendar className="w-4 h-4 mr-2" />
+            {new Date(booking.date).toLocaleDateString()}
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <MapPin className="w-4 h-4 mr-2" />
+            {booking.from} → {booking.to}
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <User className="w-4 h-4 mr-2" />
+            {booking.persons} person(s)
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <span className="font-semibold text-emerald-600">
+              ৳{booking.amount.toLocaleString()}
+            </span>
+          </div>
+          {tour && (
+            <div className="flex items-center text-sm text-gray-600">
+              <Star className="w-4 h-4 mr-2 fill-yellow-400 text-yellow-400" />
+              {tour.rating} rating
+            </div>
+          )}
+        </div>
+        <div className="pt-3">
+          <Button variant="outline" size="sm" onClick={handleDownloadImage}>
+            Download as Image
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export default function Profile() {
   const navigate = useNavigate();
   const { currentUser, userProfile, updateProfile, updateProfilePhoto, updateAddress, updateContactInfo, updatePreferences, logout, setUserProfile } = useUser();
@@ -603,57 +665,13 @@ export default function Profile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {getPendingBookings().map((booking) => {
                     const tour = getTourById(booking.tourId);
-                    const cardRef = useRef<HTMLDivElement>(null);
-                    const handleDownloadImage = async () => {
-                      if (cardRef.current) {
-                        const dataUrl = await toPng(cardRef.current);
-                        const link = document.createElement("a");
-                        link.download = `booking-summary-${booking.id}.png`;
-                        link.href = dataUrl;
-                        link.click();
-                      }
-                    };
                     return (
-                      <Card key={booking.id}>
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg">{booking.tourName}</CardTitle>
-                            {getStatusBadge(booking.status)}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div ref={cardRef} className="space-y-3">
-                            <div className="flex items-center text-sm text-gray-600">
-                              <Calendar className="w-4 h-4 mr-2" />
-                              {new Date(booking.date).toLocaleDateString()}
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                              <MapPin className="w-4 h-4 mr-2" />
-                              {booking.from} → {booking.to}
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                              <User className="w-4 h-4 mr-2" />
-                              {booking.persons} person(s)
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                              <span className="font-semibold text-emerald-600">
-                                ৳{booking.amount.toLocaleString()}
-                              </span>
-                            </div>
-                            {tour && (
-                              <div className="flex items-center text-sm text-gray-600">
-                                <Star className="w-4 h-4 mr-2 fill-yellow-400 text-yellow-400" />
-                                {tour.rating} rating
-                              </div>
-                            )}
-                          </div>
-                          <div className="pt-3">
-                            <Button variant="outline" size="sm" onClick={handleDownloadImage}>
-                              Download as Image
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <BookingCard 
+                        key={booking.id}
+                        booking={booking}
+                        tour={tour}
+                        getStatusBadge={getStatusBadge}
+                      />
                     );
                   })}
                 </div>
@@ -671,57 +689,13 @@ export default function Profile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {getConfirmedBookings().map((booking) => {
                     const tour = getTourById(booking.tourId);
-                    const cardRef = useRef<HTMLDivElement>(null);
-                    const handleDownloadImage = async () => {
-                      if (cardRef.current) {
-                        const dataUrl = await toPng(cardRef.current);
-                        const link = document.createElement("a");
-                        link.download = `booking-summary-${booking.id}.png`;
-                        link.href = dataUrl;
-                        link.click();
-                      }
-                    };
                     return (
-                      <Card key={booking.id}>
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg">{booking.tourName}</CardTitle>
-                            {getStatusBadge(booking.status)}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div ref={cardRef} className="space-y-3">
-                            <div className="flex items-center text-sm text-gray-600">
-                              <Calendar className="w-4 h-4 mr-2" />
-                              {new Date(booking.date).toLocaleDateString()}
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                              <MapPin className="w-4 h-4 mr-2" />
-                              {booking.from} → {booking.to}
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                              <User className="w-4 h-4 mr-2" />
-                              {booking.persons} person(s)
-                            </div>
-                            <div className="flex items-center text-sm text-gray-600">
-                              <span className="font-semibold text-emerald-600">
-                                ৳{booking.amount.toLocaleString()}
-                              </span>
-                            </div>
-                            {tour && (
-                              <div className="flex items-center text-sm text-gray-600">
-                                <Star className="w-4 h-4 mr-2 fill-yellow-400 text-yellow-400" />
-                                {tour.rating} rating
-                              </div>
-                            )}
-                          </div>
-                          <div className="pt-3">
-                            <Button variant="outline" size="sm" onClick={handleDownloadImage}>
-                              Download as Image
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <BookingCard 
+                        key={booking.id}
+                        booking={booking}
+                        tour={tour}
+                        getStatusBadge={getStatusBadge}
+                      />
                     );
                   })}
                 </div>
