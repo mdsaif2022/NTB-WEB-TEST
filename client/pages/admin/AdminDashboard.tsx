@@ -39,15 +39,25 @@ export default function AdminDashboard() {
   const { bookings, getRecentBookings } = useBookings();
   const { popupAds, getActivePopupAds } = usePopupAds();
 
-  // Calculate dynamic statistics
+  // Show loading state while data is being loaded
+  if (!bookings || !tours || !blogPosts || !popupAds) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-600">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  // Calculate dynamic statistics with null checks
   const totalUsers = 2847; // Mock data - in real app would come from user context
-  const totalBookings = bookings.length;
-  const totalRevenue = bookings.reduce(
-    (sum, booking) => sum + booking.amount,
+  const totalBookings = bookings?.length || 0;
+  const totalRevenue = bookings?.reduce(
+    (sum, booking) => sum + (booking?.amount || 0),
     0,
-  );
-  const activeTours = tours.filter((tour) => tour.status === "active").length;
-  const activePopupAds = getActivePopupAds().length;
+  ) || 0;
+  const activeTours = tours?.filter((tour) => tour?.status === "active").length || 0;
+  const activePopupAds = getActivePopupAds?.()?.length || 0;
 
   const stats = [
     {

@@ -148,6 +148,7 @@ export const PopupAdsProvider: React.FC<{ children: ReactNode }> = ({ children }
       setLoading(false);
     });
 
+    // Return cleanup function
     return () => {
       off(popupAdsRef, 'value', unsubscribe);
     };
