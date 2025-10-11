@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Clock, Users, Star } from "lucide-react";
 import { useTours } from "@/contexts/TourContext";
 import { Helmet } from 'react-helmet-async';
-import AdBanner from '@/components/AdBanner';
 
 export default function Tours() {
   const { tours: allTours, getActiveTours } = useTours();
@@ -172,8 +171,6 @@ export default function Tours() {
         </div>
       </section>
 
-      {/* Place AdBanner after main tour list/grid */}
-      <AdBanner />
 
       <Footer />
     </>

@@ -40,7 +40,6 @@ import { useRef } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { Helmet } from 'react-helmet-async';
-import AdBanner from '@/components/AdBanner';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -1130,7 +1129,6 @@ export default function Profile() {
         </div>
       )}
 
-      <AdBanner />
       <Footer />
     </>
   );

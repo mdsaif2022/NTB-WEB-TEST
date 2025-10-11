@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
-import AdBanner from '@/components/AdBanner';
 
 export default function Contact() {
   return (
@@ -38,7 +37,6 @@ export default function Contact() {
         </div>
       </section>
 
-      <AdBanner />
 
       {/* Contact Section */}
       <section className="py-20 bg-gray-50">

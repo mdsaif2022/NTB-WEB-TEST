@@ -2,7 +2,6 @@ import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import FeaturedDestinations from "@/components/FeaturedDestinations";
 import Footer from "@/components/Footer";
-import AdBanner from '@/components/AdBanner';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Shield, Award, Clock } from "lucide-react";
@@ -29,7 +28,6 @@ export default function Index() {
       <Navigation />
       <HeroSection />
       <FeaturedDestinations />
-        <AdBanner />
 
       {/* Why Choose Us Section */}
       <section className="py-20 bg-white">

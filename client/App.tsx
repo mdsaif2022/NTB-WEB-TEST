@@ -37,15 +37,13 @@ import NewTour from "./pages/admin/NewTour";
 import NotificationManagement from "./pages/admin/NotificationManagement";
 import NotFound from "./pages/NotFound";
 import BookingManagement from "./pages/admin/BookingManagement";
-import PopupAdsManagement from "./pages/admin/PopupAdsManagement";
 import { HelmetProvider } from 'react-helmet-async';
 import AdminLogin from "./pages/admin/AdminLogin";
 import ScrollToTop from "./components/ScrollToTop";
 import DemoModeBanner from "./components/DemoModeBanner";
-import PopupAds from "./components/PopupAds";
-import { PopupAdsProvider } from "./contexts/PopupAdsContext";
 import { isDemoConfig } from "./lib/firebaseConfig";
 import FirebaseTest from "./components/FirebaseTest";
+import AdsterraAds from "./components/AdsterraAds";
 
 const queryClient = new QueryClient();
 
@@ -61,14 +59,13 @@ const App = () => (
                     <BookingProvider>
                       <TourProvider>
                         <BlogProvider>
-                          <PopupAdsProvider>
                           <TooltipProvider>
                             <Toaster />
                             <Sonner />
                             <BrowserRouter>
                             <ScrollToTop />
                             <DemoModeBanner isVisible={isDemoConfig && !sessionStorage.getItem('hideDemoBanner')} />
-                            <PopupAds />
+                            <AdsterraAds />
                             <Routes>
                         {/* Public Routes */}
                         <Route path="/" element={<Index />} />
@@ -98,7 +95,6 @@ const App = () => (
                           <Route path="notifications" element={<NotificationManagement />} />
                           <Route path="settings" element={<AdminSettings />} />
                           <Route path="bookings" element={<BookingManagement />} />
-                          <Route path="popup-ads" element={<PopupAdsManagement />} />
                         </Route>
 
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
@@ -106,7 +102,6 @@ const App = () => (
                             </Routes>
                           </BrowserRouter>
                           </TooltipProvider>
-                          </PopupAdsProvider>
                         </BlogProvider>
                       </TourProvider>
                     </BookingProvider>

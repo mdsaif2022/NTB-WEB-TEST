@@ -20,7 +20,6 @@ import { useTours } from "@/contexts/TourContext";
 import { useBlogs } from "@/contexts/BlogContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useBookings } from "@/contexts/BookingContext";
-import { usePopupAds } from "@/contexts/PopupAdsContext";
 import { Helmet } from 'react-helmet-async';
 
 export default function AdminDashboard() {
@@ -37,10 +36,9 @@ export default function AdminDashboard() {
   const { blogPosts } = useBlogs();
   const { settings, isLoading: settingsLoading } = useSettings();
   const { bookings, getRecentBookings } = useBookings();
-  const { popupAds, getActivePopupAds } = usePopupAds();
 
   // Show loading state while data is being loaded
-  if (!bookings || !tours || !blogPosts || !popupAds) {
+  if (!bookings || !tours || !blogPosts) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -57,7 +55,6 @@ export default function AdminDashboard() {
     0,
   ) || 0;
   const activeTours = tours?.filter((tour) => tour?.status === "active").length || 0;
-  const activePopupAds = getActivePopupAds?.()?.length || 0;
 
   const stats = [
     {
@@ -95,15 +92,6 @@ export default function AdminDashboard() {
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-100",
-    },
-    {
-      title: "Active Popup Ads",
-      value: activePopupAds.toString(),
-      change: "+2",
-      trend: "up",
-      icon: Megaphone,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
     },
   ];
 

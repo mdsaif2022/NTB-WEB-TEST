@@ -9,7 +9,6 @@ const DB_PATHS = {
   BLOGS: 'blogs',
   BOOKINGS: 'bookings',
   NOTIFICATIONS: 'notifications',
-  POPUP_ADS: 'popupAds',
   USERS: 'users',
   SETTINGS: 'settings'
 };

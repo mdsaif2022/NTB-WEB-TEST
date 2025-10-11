@@ -35,7 +35,6 @@ import html2canvas from "html2canvas";
 import { useBookings } from "@/contexts/BookingContext";
 import { useUser } from "@/contexts/UserContext";
 import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
-import AdBanner from '@/components/AdBanner';
 import { Helmet } from 'react-helmet-async';
 import { BusSeatMap } from "../../shared/api";
 import { toast } from "@/components/ui/use-toast";
@@ -1770,7 +1769,6 @@ export default function Booking() {
           </div>
         </div>
       </div>
-      <AdBanner />
       <Footer />
       {showNonThursdayPopup && (
         <div style={{

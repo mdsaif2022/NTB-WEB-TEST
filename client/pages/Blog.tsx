@@ -28,7 +28,6 @@ import {
 import { Link } from "react-router-dom";
 import { useBlogs } from "@/contexts/BlogContext";
 import { Helmet } from 'react-helmet-async';
-import AdBanner from '@/components/AdBanner';
 
 interface Comment {
   id: number;
@@ -487,7 +486,6 @@ export default function Blog() {
         </div>
       </section>
 
-      <AdBanner />
 
       {/* Blog Detail Modal */}
       <Dialog open={!!selectedBlog} onOpenChange={closeBlogDetail}>

@@ -29,11 +29,6 @@
       ".write": true,
       ".indexOn": ["email", "role"]
     },
-    "popupAds": {
-      ".read": true,
-      ".write": true,
-      ".indexOn": ["isActive", "targetAudience"]
-    },
     "test": {
       ".read": true,
       ".write": true
