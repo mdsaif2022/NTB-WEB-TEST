@@ -312,6 +312,29 @@ export const bookingService = {
     }
   },
 
+  // Helper function to remove undefined values from an object
+  removeUndefinedValues(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.removeUndefinedValues(item));
+    }
+    
+    if (typeof obj === 'object') {
+      const cleaned: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        if (value !== undefined) {
+          cleaned[key] = this.removeUndefinedValues(value);
+        }
+      }
+      return cleaned;
+    }
+    
+    return obj;
+  },
+
   // Add new booking
   async addBooking(bookingData: any) {
     if (!realtimeDb) {
@@ -335,10 +358,13 @@ export const bookingService = {
         updatedAt: new Date().toISOString()
       };
       
-      console.log('bookingService.addBooking: Attempting to write booking:', booking);
-      await set(newBookingRef, booking);
+      // Remove undefined values to prevent Firebase errors
+      const cleanedBooking = this.removeUndefinedValues(booking);
+      
+      console.log('bookingService.addBooking: Attempting to write booking:', cleanedBooking);
+      await set(newBookingRef, cleanedBooking);
       console.log('bookingService.addBooking: Booking added successfully');
-      return booking;
+      return cleanedBooking;
     } catch (error) {
       console.error('bookingService.addBooking: Error adding booking:', error);
       console.error('bookingService.addBooking: Error details:', {
@@ -361,7 +387,10 @@ export const bookingService = {
         updatedAt: new Date().toISOString()
       };
       
-      await update(bookingRef, updates);
+      // Remove undefined values to prevent Firebase errors
+      const cleanedUpdates = this.removeUndefinedValues(updates);
+      
+      await update(bookingRef, cleanedUpdates);
       return true;
     } catch (error) {
       console.error('Error updating booking:', error);

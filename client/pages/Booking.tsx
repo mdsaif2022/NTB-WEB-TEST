@@ -493,8 +493,9 @@ export default function Booking() {
         notes: bookingData.notes,
         amount: selectedTour.price * bookingData.persons,
         status: 'pending' as 'pending',
-        transactionId: bookingData.transactionId,
-        paymentProof: bookingData.paymentProof ? bookingData.paymentProof.name : undefined,
+        transactionId: bookingData.transactionId || '',
+        // Only include paymentProof if it exists, otherwise omit the field entirely
+        ...(bookingData.paymentProof && { paymentProof: bookingData.paymentProof.name }),
       };
       
       // Add booking and get the generated ID
