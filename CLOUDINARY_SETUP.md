@@ -14,9 +14,11 @@ The Cloudinary upload preset `ntb_web_preset` is not configured or doesn't exist
    - Visit [Cloudinary Console](https://console.cloudinary.com/)
    - Login to your account with cloud name: `dvdtbffva`
 
-2. **Create Upload Preset**
+2. **Create Upload Presets**
    - Go to **Settings** → **Upload**
    - Scroll down to **Upload presets**
+   
+   **For Images:**
    - Click **Add upload preset**
    - Set the following:
      - **Preset name**: `ntb_web_preset`
@@ -26,9 +28,21 @@ The Cloudinary upload preset `ntb_web_preset` is not configured or doesn't exist
      - **Format**: `Auto`
      - **Quality**: `Auto`
    - Click **Save**
+   
+   **For Videos:**
+   - Click **Add upload preset**
+   - Set the following:
+     - **Preset name**: `ntb_web_video_preset`
+     - **Signing Mode**: `Unsigned`
+     - **Folder**: `ntb-web/videos`
+     - **Resource Type**: `Video`
+     - **Format**: `Auto`
+     - **Quality**: `Auto`
+   - Click **Save**
 
 3. **Test Upload**
    - Try uploading an image in the admin panel
+   - Try uploading a video in the admin panel
    - Check browser console for success messages
 
 ### Option 2: Use Environment Variables

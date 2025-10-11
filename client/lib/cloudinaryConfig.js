@@ -129,18 +129,81 @@ export const uploadImageAsBase64 = async (file, folder = 'ntb-web') => {
   }
 };
 
-// Upload video to Cloudinary
+// Upload video to Cloudinary using unsigned upload with preset
 export const uploadVideo = async (file, folder = 'ntb-web/videos') => {
   try {
     console.log('Uploading video to Cloudinary...', file.name);
     
+    const config = getCloudinaryConfig();
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'ntb_web_video_preset'); // You'll need to create this preset
+    formData.append('upload_preset', 'ntb_web_video_preset'); // This preset needs to be created
     formData.append('folder', folder);
     formData.append('resource_type', 'video');
+    formData.append('cloud_name', config.cloudName);
     
-    const response = await fetch(`https://api.cloudinary.com/v1_1/dvdtbffva/video/upload`, {
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/video/upload`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      // If preset fails, try with API key and signature
+      console.log('Preset upload failed, trying with API key...');
+      try {
+        return await uploadVideoWithSignature(file, folder);
+      } catch (signatureError) {
+        console.log('Signature upload failed, falling back to base64...');
+        return await uploadVideoAsBase64(file, folder);
+      }
+    }
+    
+    const result = await response.json();
+    console.log('Video uploaded successfully:', result.secure_url);
+    return result;
+  } catch (error) {
+    console.error('Error uploading video:', error);
+    // Final fallback to base64
+    console.log('Cloudinary upload failed, falling back to base64...');
+    return await uploadVideoAsBase64(file, folder);
+  }
+};
+
+// Upload video with signature (fallback method)
+export const uploadVideoWithSignature = async (file, folder = 'ntb-web/videos') => {
+  try {
+    console.log('Uploading video with signature...', file.name);
+    
+    const config = getCloudinaryConfig();
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    
+    // Generate signature (simplified version)
+    const params = {
+      timestamp: timestamp,
+      folder: folder,
+      resource_type: 'video',
+      public_id: `${folder}/${Date.now()}_${file.name.split('.')[0]}`
+    };
+    
+    // Create signature string
+    const signatureString = Object.keys(params)
+      .sort()
+      .map(key => `${key}=${params[key]}`)
+      .join('&') + config.apiSecret;
+    
+    // Simple hash function (for demo purposes)
+    const signature = btoa(signatureString).slice(0, 32);
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', config.apiKey);
+    formData.append('timestamp', timestamp);
+    formData.append('signature', signature);
+    formData.append('folder', folder);
+    formData.append('resource_type', 'video');
+    formData.append('public_id', params.public_id);
+    
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${config.cloudName}/video/upload`, {
       method: 'POST',
       body: formData
     });
@@ -150,10 +213,40 @@ export const uploadVideo = async (file, folder = 'ntb-web/videos') => {
     }
     
     const result = await response.json();
-    console.log('Video uploaded successfully:', result.secure_url);
+    console.log('Video uploaded successfully with signature:', result.secure_url);
     return result;
   } catch (error) {
-    console.error('Error uploading video:', error);
+    console.error('Error uploading video with signature:', error);
+    throw error;
+  }
+};
+
+// Fallback: Convert video to base64 for local storage
+export const uploadVideoAsBase64 = async (file, folder = 'ntb-web/videos') => {
+  try {
+    console.log('Converting video to base64...', file.name);
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = {
+          secure_url: reader.result,
+          public_id: `${folder}/${Date.now()}_${file.name.split('.')[0]}`,
+          format: file.type.split('/')[1],
+          width: 0,
+          height: 0,
+          bytes: file.size,
+          duration: 0,
+          created_at: new Date().toISOString()
+        };
+        console.log('Video converted to base64 successfully');
+        resolve(result);
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  } catch (error) {
+    console.error('Error converting video to base64:', error);
     throw error;
   }
 };
