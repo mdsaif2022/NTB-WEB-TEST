@@ -60,8 +60,22 @@ export default function Tours() {
                   key={tour.id}
                   className="overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  <div className="h-48 bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-6xl">
-                    {tour.image}
+                  <div className="h-48 bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center overflow-hidden">
+                    {tour.images && tour.images.length > 0 ? (
+                      <img
+                        src={tour.images[0]}
+                        alt={tour.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : tour.image && tour.image.startsWith('http') ? (
+                      <img
+                        src={tour.image}
+                        alt={tour.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-6xl">{tour.image || "📍"}</span>
+                    )}
                   </div>
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-3">

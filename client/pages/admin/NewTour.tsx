@@ -644,8 +644,16 @@ export default function NewTour() {
                 <CardTitle>Tour Preview</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="w-full h-32 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center text-4xl">
-                  📍
+                <div className="w-full h-32 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center overflow-hidden">
+                  {tourData.images.length > 0 ? (
+                    <img
+                      src={tourData.images[0].url}
+                      alt={tourData.name || "Tour preview"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl">📍</span>
+                  )}
                 </div>
 
                 <div>

@@ -42,8 +42,22 @@ export default function FeaturedDestinations() {
               >
                 <div className="relative overflow-hidden">
                   {/* Image placeholder with emoji */}
-                  <div className="h-64 bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-8xl group-hover:scale-110 transition-transform duration-500">
-                    {destination.image}
+                  <div className="h-64 bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-8xl group-hover:scale-110 transition-transform duration-500 overflow-hidden">
+                    {destination.images && destination.images.length > 0 ? (
+                      <img
+                        src={destination.images[0]}
+                        alt={destination.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : destination.image && destination.image.startsWith('http') ? (
+                      <img
+                        src={destination.image}
+                        alt={destination.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <span className="text-8xl">{destination.image || "📍"}</span>
+                    )}
                   </div>
 
                   {/* Price Badge */}
