@@ -3,17 +3,17 @@
     "tours": {
       ".read": true,
       ".write": true,
-      ".indexOn": ["status", "createdDate"]
+      ".indexOn": ["status", "createdAt", "price"]
     },
     "blogs": {
       ".read": true,
       ".write": true,
-      ".indexOn": ["status", "submissionDate", "author.email"]
+      ".indexOn": ["status", "createdAt", "category"]
     },
     "bookings": {
       ".read": true,
       ".write": true,
-      ".indexOn": ["userId", "status", "bookingDate", "tourId"]
+      ".indexOn": ["status", "createdAt", "userId", "tourId"]
     },
     "settings": {
       ".read": true,
@@ -22,16 +22,27 @@
     "notifications": {
       ".read": true,
       ".write": true,
-      ".indexOn": ["userId", "read", "createdAt"]
+      ".indexOn": ["userId", "createdAt", "read"]
     },
     "users": {
       ".read": true,
       ".write": true,
-      ".indexOn": ["email", "role"]
+      ".indexOn": ["email", "createdAt", "isAdmin"]
+    },
+    "popupAds": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["status", "createdAt"]
     },
     "test": {
       ".read": true,
       ".write": true
-    }
+    },
+    "diagnostics": {
+      ".read": true,
+      ".write": true
+    },
+    ".read": true,
+    ".write": true
   }
 }

@@ -314,9 +314,15 @@ export const bookingService = {
 
   // Add new booking
   async addBooking(bookingData: any) {
-    if (!realtimeDb) return null;
+    if (!realtimeDb) {
+      console.error('bookingService.addBooking: Firebase Realtime Database not available');
+      return null;
+    }
     
     try {
+      console.log('bookingService.addBooking: Starting to add booking...');
+      console.log('bookingService.addBooking: Booking data:', bookingData);
+      
       const bookingsRef = ref(realtimeDb, DB_PATHS.BOOKINGS);
       const newBookingRef = push(bookingsRef);
       const bookingId = newBookingRef.key;
@@ -329,10 +335,17 @@ export const bookingService = {
         updatedAt: new Date().toISOString()
       };
       
+      console.log('bookingService.addBooking: Attempting to write booking:', booking);
       await set(newBookingRef, booking);
+      console.log('bookingService.addBooking: Booking added successfully');
       return booking;
     } catch (error) {
-      console.error('Error adding booking:', error);
+      console.error('bookingService.addBooking: Error adding booking:', error);
+      console.error('bookingService.addBooking: Error details:', {
+        code: error.code,
+        message: error.message,
+        stack: error.stack
+      });
       return null;
     }
   },
