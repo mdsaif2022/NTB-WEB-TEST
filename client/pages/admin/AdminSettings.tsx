@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { useSettings } from "../../contexts/SettingsContext";
 import { useUser } from "@/contexts/UserContext";
+import { emailService } from "@/lib/emailService";
 import { Helmet } from 'react-helmet-async';
 
 export default function AdminSettings() {
@@ -54,6 +55,16 @@ export default function AdminSettings() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSaved, setPaymentSaved] = useState("");
 
+  // Email settings state
+  const [emailSettings, setEmailSettings] = useState({
+    adminEmail: 'boraborsaifuddinvaiya@gmail.com',
+    enableBookingNotifications: true,
+    enableBlogNotifications: true,
+    emailFrequency: 'immediate'
+  });
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailSaved, setEmailSaved] = useState("");
+
   // Initialize payment settings from Firebase settings
   useEffect(() => {
     if (settings) {
@@ -63,6 +74,21 @@ export default function AdminSettings() {
       });
     }
   }, [settings]);
+
+  // Load email settings on component mount
+  useEffect(() => {
+    const loadEmailSettings = async () => {
+      try {
+        const settings = await emailService.getAdminEmailSettings();
+        if (settings) {
+          setEmailSettings(prev => ({ ...prev, ...settings }));
+        }
+      } catch (error) {
+        console.error('Error loading email settings:', error);
+      }
+    };
+    loadEmailSettings();
+  }, []);
 
   // Show loading state while settings are being loaded
   if (contextLoading || !settings) {
@@ -95,6 +121,26 @@ export default function AdminSettings() {
     } finally {
       setPaymentLoading(false);
       setTimeout(() => setPaymentSaved(""), 3000);
+    }
+  };
+
+  // Save email settings to Firebase
+  const handleSaveEmailSettings = async () => {
+    setEmailLoading(true);
+    setEmailSaved("");
+    try {
+      const success = await emailService.updateAdminEmailSettings(emailSettings);
+      if (success) {
+        setEmailSaved("Email settings saved successfully!");
+      } else {
+        setEmailSaved("Error saving email settings.");
+      }
+    } catch (error) {
+      console.error('Error saving email settings:', error);
+      setEmailSaved("Error saving email settings.");
+    } finally {
+      setEmailLoading(false);
+      setTimeout(() => setEmailSaved(""), 3000);
     }
   };
 
@@ -239,11 +285,12 @@ export default function AdminSettings() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="payment">Payment</TabsTrigger>
+          <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="system">System</TabsTrigger>
         </TabsList>
@@ -866,6 +913,180 @@ export default function AdminSettings() {
                 </div>
               </CardContent>
             </Card>
+        </TabsContent>
+
+        {/* Email Settings */}
+        <TabsContent value="email">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Mail className="w-5 h-5 mr-2" />
+                  Email Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <label className="text-sm font-medium text-gray-600 mb-2 block">
+                    Admin Email Address
+                  </label>
+                  <Input
+                    type="email"
+                    value={emailSettings.adminEmail}
+                    onChange={(e) =>
+                      setEmailSettings(prev => ({ ...prev, adminEmail: e.target.value }))
+                    }
+                    placeholder="admin@example.com"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This email will receive notifications for new bookings and blog posts
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600 mb-2 block">
+                    Email Frequency
+                  </label>
+                  <Select
+                    value={emailSettings.emailFrequency}
+                    onValueChange={(value) =>
+                      setEmailSettings(prev => ({ ...prev, emailFrequency: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="immediate">Immediate</SelectItem>
+                      <SelectItem value="hourly">Hourly Digest</SelectItem>
+                      <SelectItem value="daily">Daily Digest</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900">
+                      Booking Notifications
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Send email when new tour bookings are made
+                    </p>
+                  </div>
+                  <Switch
+                    checked={emailSettings.enableBookingNotifications}
+                    onCheckedChange={(checked) =>
+                      setEmailSettings(prev => ({ ...prev, enableBookingNotifications: checked }))
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900">
+                      Blog Notifications
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Send email when new blog posts are submitted
+                    </p>
+                  </div>
+                  <Switch
+                    checked={emailSettings.enableBlogNotifications}
+                    onCheckedChange={(checked) =>
+                      setEmailSettings(prev => ({ ...prev, enableBlogNotifications: checked }))
+                    }
+                  />
+                </div>
+
+                <Button
+                  onClick={handleSaveEmailSettings}
+                  disabled={emailLoading}
+                  className="w-full"
+                >
+                  {emailLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Email Settings
+                    </>
+                  )}
+                </Button>
+
+                {emailSaved && (
+                  <div className={`text-sm p-3 rounded-md ${
+                    emailSaved.includes('Error') 
+                      ? 'bg-red-50 text-red-700 border border-red-200' 
+                      : 'bg-green-50 text-green-700 border border-green-200'
+                  }`}>
+                    {emailSaved}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Bell className="w-5 h-5 mr-2" />
+                  Email Templates
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-900">Booking Notification Template</h4>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-2">Subject: New Tour Booking - [Tour Name]</p>
+                    <p className="text-xs text-gray-500">
+                      Includes: Customer details, booking information, amount, and admin panel link
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-900">Blog Notification Template</h4>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-2">Subject: New Blog Post Submission - [Title]</p>
+                    <p className="text-xs text-gray-500">
+                      Includes: Author details, blog title, category, excerpt, and admin panel link
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-900">Test Email</h4>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={async () => {
+                      try {
+                        await emailService.sendBookingNotification({
+                          id: 'test-booking',
+                          tourName: 'Test Tour Package',
+                          customerInfo: {
+                            name: 'Test Customer',
+                            email: 'test@example.com',
+                            phone: '+880 1700-000000'
+                          },
+                          amount: 5000,
+                          bookingDate: new Date().toISOString(),
+                          status: 'pending'
+                        });
+                        alert('Test email sent successfully!');
+                      } catch (error) {
+                        alert('Error sending test email');
+                      }
+                    }}
+                  >
+                    Send Test Email
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Notification Settings */}

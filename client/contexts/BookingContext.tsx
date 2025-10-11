@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import React from "react";
 import { bookingService } from "@/lib/firebaseServices";
+import { emailService } from "@/lib/emailService";
 
 export interface Booking {
   id: string;
@@ -284,6 +285,16 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
       if (addedBooking) {
         // Firebase listener will update the state automatically
         console.log("Booking added successfully");
+        
+        // Send email notification to admin
+        try {
+          await emailService.sendBookingNotification(addedBooking);
+          console.log("Booking notification email sent to admin");
+        } catch (emailError) {
+          console.error("Error sending booking notification email:", emailError);
+          // Don't fail the booking if email fails
+        }
+        
         return addedBooking;
       }
       return null;

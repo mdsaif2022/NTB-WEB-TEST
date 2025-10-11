@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { blogService } from "@/lib/firebaseServices";
+import { emailService } from "@/lib/emailService";
 
 export interface BlogPost {
   id: number;
@@ -314,6 +315,17 @@ export function BlogProvider({ children }: { children: ReactNode }) {
       const addedPost = await blogService.addBlog(postData);
       if (addedPost) {
         // Firebase listener will update the state automatically
+        console.log("Blog post added successfully");
+        
+        // Send email notification to admin
+        try {
+          await emailService.sendBlogNotification(addedPost);
+          console.log("Blog notification email sent to admin");
+        } catch (emailError) {
+          console.error("Error sending blog notification email:", emailError);
+          // Don't fail the blog post if email fails
+        }
+        
         return addedPost;
       }
       return null;
