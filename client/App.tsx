@@ -43,7 +43,6 @@ import ScrollToTop from "./components/ScrollToTop";
 import DemoModeBanner from "./components/DemoModeBanner";
 import { isDemoConfig } from "./lib/firebaseConfig";
 import FirebaseTest from "./components/FirebaseTest";
-import AdsterraAds from "./components/AdsterraAds";
 
 const queryClient = new QueryClient();
 
@@ -65,7 +64,6 @@ const App = () => (
                             <BrowserRouter>
                             <ScrollToTop />
                             <DemoModeBanner isVisible={isDemoConfig && !sessionStorage.getItem('hideDemoBanner')} />
-                            <AdsterraAds />
                             <Routes>
                         {/* Public Routes */}
                         <Route path="/" element={<Index />} />
