@@ -124,21 +124,40 @@ export default function Footer() {
               <div className="flex items-start space-x-3">
                 <MapPin className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
                 <div className="text-emerald-200 text-sm">
-                  {settings.address.split(",").map((line, index) => (
-                    <p key={index}>{line.trim()}</p>
-                  ))}
+                  {isLoading ? (
+                    <div className="space-y-1">
+                      <div className="w-32 h-4 bg-emerald-800 animate-pulse rounded"></div>
+                      <div className="w-24 h-4 bg-emerald-800 animate-pulse rounded"></div>
+                    </div>
+                  ) : (
+                    settings?.address ? (
+                      settings.address.split(",").map((line, index) => (
+                        <p key={index}>{line.trim()}</p>
+                      ))
+                    ) : (
+                      <p>Loading address...</p>
+                    )
+                  )}
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-orange-400 flex-shrink-0" />
                 <span className="text-emerald-200 text-sm">
-                  {settings.phone}
+                  {isLoading ? (
+                    <div className="w-24 h-4 bg-emerald-800 animate-pulse rounded"></div>
+                  ) : (
+                    settings?.phone || "Loading..."
+                  )}
                 </span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-5 h-5 text-orange-400 flex-shrink-0" />
                 <span className="text-emerald-200 text-sm">
-                  {settings.contactEmail}
+                  {isLoading ? (
+                    <div className="w-32 h-4 bg-emerald-800 animate-pulse rounded"></div>
+                  ) : (
+                    settings?.contactEmail || "Loading..."
+                  )}
                 </span>
               </div>
             </div>

@@ -44,6 +44,16 @@ export default function AdminSettings() {
     }
   }, [isAdmin, navigate]);
 
+  // Show loading state while settings are being loaded
+  if (contextLoading || !settings) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-600">Loading settings...</p>
+      </div>
+    );
+  }
+
   const [siteLogo, setSiteLogo] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [savedMessage, setSavedMessage] = useState("");
@@ -361,7 +371,7 @@ export default function AdminSettings() {
                     Address
                   </label>
                   <Textarea
-                    value={settings.address}
+                    value={settings?.address || ""}
                     onChange={(e) =>
                       handleSettingChange("address", e.target.value)
                     }
