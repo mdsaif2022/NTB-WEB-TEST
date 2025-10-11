@@ -253,30 +253,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [isNotificationSupported] = useState<boolean>(() => "Notification" in window);
   const { currentUser } = useUser();
 
-  // Poll for admin notifications if admin is logged in
-  useEffect(() => {
-    if (!currentUser || !currentUser.isAdmin) return;
-    const fetchAdminNotifications = async () => {
-      const res = await fetch("/api/notifications?role=admin");
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.notifications)) {
-          // Find new notifications not already in state
-          const newNotifs = data.notifications.filter((n: any) => !notifications.some(local => local.id === n.id));
-          if (newNotifs.length > 0) {
-            setNotifications(prev => [...newNotifs, ...prev]);
-            // Show toast for each new notification
-            newNotifs.forEach((n: any) => {
-              toast({ title: n.title, description: n.message });
-            });
-          }
-        }
-      }
-    };
-    fetchAdminNotifications();
-    const interval = setInterval(fetchAdminNotifications, 10000);
-    return () => clearInterval(interval);
-  }, [currentUser, notifications]);
+  // Admin notifications are handled via Firebase real-time listeners
+  // No need to poll for notifications since we use Firebase Realtime Database
 
   // Save to localStorage whenever state changes
   useEffect(() => {

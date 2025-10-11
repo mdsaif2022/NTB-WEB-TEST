@@ -73,13 +73,13 @@ export default function BookingManagement() {
     return () => clearInterval(interval);
   }, []);
 
-  // Approve booking via backend
+  // Approve booking via Firebase
   const handleConfirm = async (bookingId: string) => {
     setActionLoading(bookingId);
     try {
-      await fetch(`/api/bookings/${bookingId}/approve`, { method: "POST" });
-      // Update the booking status locally to trigger real-time events
+      // Update the booking status directly in Firebase
       updateBooking(bookingId, { status: "confirmed" });
+      console.log("Booking approved:", bookingId);
     } catch (error) {
       console.error("Error approving booking:", error);
     } finally {
@@ -87,13 +87,13 @@ export default function BookingManagement() {
     }
   };
   
-  // Reject booking via backend
+  // Reject booking via Firebase
   const handleReject = async (bookingId: string) => {
     setActionLoading(bookingId);
     try {
-      await fetch(`/api/bookings/${bookingId}/reject`, { method: "POST" });
-      // Update the booking status locally to trigger real-time events
+      // Update the booking status directly in Firebase
       updateBooking(bookingId, { status: "cancelled" });
+      console.log("Booking rejected:", bookingId);
     } catch (error) {
       console.error("Error rejecting booking:", error);
     } finally {

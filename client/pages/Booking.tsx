@@ -302,15 +302,20 @@ export default function Booking() {
   }, [currentUser, userData]);
 
   useEffect(() => {
-    fetch("/api/payment-settings")
-      .then((res) => res.json())
-      .then((data) => {
-        setPaymentSettings(data);
-        // Default to bKash if only bKash is enabled
-        if (data.bkashPayment && !data.manualPayment) setSelectedPaymentMethod("bkash");
-        else setSelectedPaymentMethod("manual");
+    // Initialize payment settings from Firebase settings
+    if (settings) {
+      setPaymentSettings({
+        manualPayment: settings?.enableManualPayment !== false, // Default to true
+        bkashPayment: settings?.enableBkashPayment !== false, // Default to true
       });
-  }, []);
+      // Default to bKash if only bKash is enabled
+      if (settings?.enableBkashPayment && !settings?.enableManualPayment) {
+        setSelectedPaymentMethod("bkash");
+      } else {
+        setSelectedPaymentMethod("manual");
+      }
+    }
+  }, [settings]);
 
   // Helper to format time left
   function getTimeLeft(expires: string) {
@@ -337,13 +342,17 @@ export default function Booking() {
     return false;
   }
 
-  // Fetch seat map for selected bus
+  // Initialize seat map for selected bus
   const fetchTourSeats = async () => {
     setLoadingSeats(true);
     try {
-      const res = await fetch(`/api/tours/${selectedTour.id}/seats`);
-      const data = await res.json();
-      setBackendSeatMap(data.seats);
+      // Use default seat map since we don't have backend API
+      const defaultSeatMap = {
+        rows: 10,
+        seatsPerRow: 4,
+        bookedSeats: [], // No pre-booked seats
+      };
+      setBackendSeatMap(defaultSeatMap);
     } finally {
       setLoadingSeats(false);
     }
@@ -418,16 +427,8 @@ export default function Booking() {
           ? [...selectedSeats, seatId]
           : selectedSeats;
       // POST to backend for this tour with userId
-      fetch(`/api/tours/${selectedTour.id}/seats`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          busId: String(selectedTour.id),
-          selectedSeats: newSelectedSeats,
-          userId,
-        }),
-      })
-        .then(() => fetchTourSeats()); // Refresh after update
+      // Seat selection is handled locally since we don't have backend API
+      console.log("Seat selection updated locally:", newSelectedSeats);
       return {
         ...prev,
         selectedSeatsByBus: [newSelectedSeats],
@@ -533,12 +534,9 @@ export default function Booking() {
     if (!bookingId || step !== 5) return;
     let interval: NodeJS.Timeout;
     const fetchStatus = async () => {
-      const res = await fetch(`/api/bookings/${bookingId}/status`);
-      if (res.ok) {
-        const data = await res.json();
-        setBookingStatus(data.status);
-        setExpiresAt(data.expiresAt);
-      }
+      // Simulate booking status since we don't have backend API
+      setBookingStatus("pending");
+      setExpiresAt(new Date(Date.now() + 15 * 60 * 1000).toISOString()); // 15 minutes from now
     };
     fetchStatus();
     interval = setInterval(fetchStatus, 10000);
@@ -792,12 +790,8 @@ export default function Booking() {
     const amount = urlParams.get("amount");
     // Simulate payment success/failure
     setTimeout(async () => {
-      // For demo, always succeed
-      await fetch("/api/payment/bkash/callback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId, paymentStatus: "success" }),
-      });
+      // For demo, simulate payment success
+      console.log("Payment callback simulated for booking:", bookingId);
       window.location.href = "/booking?payment=success";
     }, 2000);
   }

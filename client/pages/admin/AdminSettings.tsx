@@ -54,12 +54,15 @@ export default function AdminSettings() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSaved, setPaymentSaved] = useState("");
 
-  // Fetch payment settings on mount
+  // Initialize payment settings from Firebase settings
   useEffect(() => {
-    fetch("/api/payment-settings")
-      .then((res) => res.json())
-      .then((data) => setPaymentSettings(data));
-  }, []);
+    if (settings) {
+      setPaymentSettings({
+        manualPayment: true, // Default to enabled
+        bkashPayment: true, // Default to enabled
+      });
+    }
+  }, [settings]);
 
   // Show loading state while settings are being loaded
   if (contextLoading || !settings) {
@@ -76,21 +79,17 @@ export default function AdminSettings() {
     setPaymentSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Save payment settings
+  // Save payment settings to Firebase
   const handleSavePaymentSettings = async () => {
     setPaymentLoading(true);
     setPaymentSaved("");
     try {
-      const res = await fetch("/api/payment-settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paymentSettings),
+      // Save payment settings to Firebase settings
+      await updateSettings({
+        enableManualPayment: paymentSettings.manualPayment,
+        enableBkashPayment: paymentSettings.bkashPayment,
       });
-      if (res.ok) {
-        setPaymentSaved("Payment settings saved!");
-      } else {
-        setPaymentSaved("Failed to save payment settings.");
-      }
+      setPaymentSaved("Payment settings saved!");
     } catch (e) {
       setPaymentSaved("Error saving payment settings.");
     } finally {

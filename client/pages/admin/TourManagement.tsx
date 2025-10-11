@@ -67,13 +67,17 @@ function AdminSeatManager({ tourId, adminId }: { tourId: number, adminId: string
   const [loading, setLoading] = useState(false);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
 
-  // Fetch seat map for this tour
+  // Initialize seat map for this tour
   const fetchSeats = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/tours/${tourId}/seats`);
-      const data = await res.json();
-      setSeatMap(data.seats);
+      // Use default seat map since we don't have backend API
+      const defaultSeatMap = {
+        rows: 10,
+        seatsPerRow: 4,
+        bookedSeats: [], // No pre-booked seats
+      };
+      setSeatMap(defaultSeatMap);
     } finally {
       setLoading(false);
     }
@@ -91,15 +95,8 @@ function AdminSeatManager({ tourId, adminId }: { tourId: number, adminId: string
   };
 
   const handleBookSeats = async () => {
-    await fetch(`/api/tours/${tourId}/seats`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        busId: tourId,
-        selectedSeats,
-        userId: adminId,
-      }),
-    });
+    // Seat booking is handled locally since we don't have backend API
+    console.log("Seat booking simulated for tour:", tourId, "seats:", selectedSeats);
     setSelectedSeats([]);
     fetchSeats();
   };

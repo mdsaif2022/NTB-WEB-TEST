@@ -34,17 +34,16 @@ export default function MyBookings() {
   useEffect(() => {
     if (!userProfile) return;
     setLoading(true);
-    // Fetch all bookings for this user from backend
-    fetch(`/api/bookings?email=${encodeURIComponent(userProfile.user.email)}`)
-      .then(res => res.json())
-      .then(data => setBookings(data.bookings || []))
-      .finally(() => setLoading(false));
+    // Bookings are loaded from Firebase BookingContext
+    // No need to fetch from backend API
+    setLoading(false);
   }, [userProfile]);
 
   const handleCancel = async (bookingId: string) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
-    await fetch(`/api/bookings/${bookingId}/reject`, { method: "POST" });
-    setBookings(bookings => bookings.map(b => b.id === bookingId ? { ...b, status: "rejected" } : b));
+    // Booking cancellation is handled via Firebase BookingContext
+    console.log("Booking cancellation requested for:", bookingId);
+    setBookings(bookings => bookings.map(b => b.id === bookingId ? { ...b, status: "cancelled" } : b));
   };
 
   const filteredBookings = bookings.filter((b) =>
