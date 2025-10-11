@@ -376,43 +376,108 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
   const deleteBlogPost = async (id: number) => {
     try {
+      // Store the original post for potential rollback
+      const originalPost = blogPosts.find(post => post.id === id);
+      
+      // Optimistic update - remove from local state immediately
+      setBlogPosts(prevPosts => prevPosts.filter(post => post.id !== id));
+      
       const success = await blogService.deleteBlog(id.toString());
       if (success) {
-        // Firebase listener will update the state automatically
         console.log("Blog post deleted successfully");
+        // Firebase listener will sync the final state
       } else {
         console.error("Failed to delete blog post");
+        // Revert optimistic update on failure
+        if (originalPost) {
+          setBlogPosts(prevPosts => [...prevPosts, originalPost]);
+        }
       }
     } catch (error) {
       console.error('Error deleting blog post:', error);
+      // Revert optimistic update on error
+      const originalPost = blogPosts.find(post => post.id === id);
+      if (originalPost) {
+        setBlogPosts(prevPosts => [...prevPosts, originalPost]);
+      }
     }
   };
 
   const approveBlogPost = async (id: number, adminNotes?: string) => {
     try {
+      // Optimistic update - update local state immediately
+      setBlogPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === id 
+            ? { ...post, status: 'approved', adminNotes, updatedAt: new Date().toISOString() }
+            : post
+        )
+      );
+      
       const success = await blogService.approveBlog(id.toString(), adminNotes);
       if (success) {
-        // Firebase listener will update the state automatically
         console.log("Blog post approved successfully");
+        // Firebase listener will sync the final state
       } else {
         console.error("Failed to approve blog post");
+        // Revert optimistic update on failure
+        setBlogPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === id 
+              ? { ...post, status: 'pending' }
+              : post
+          )
+        );
       }
     } catch (error) {
       console.error('Error approving blog post:', error);
+      // Revert optimistic update on error
+      setBlogPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === id 
+            ? { ...post, status: 'pending' }
+            : post
+        )
+      );
     }
   };
 
   const rejectBlogPost = async (id: number, reason: string, adminNotes?: string) => {
     try {
+      // Optimistic update - update local state immediately
+      setBlogPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === id 
+            ? { ...post, status: 'rejected', rejectionReason: reason, adminNotes, updatedAt: new Date().toISOString() }
+            : post
+        )
+      );
+      
       const success = await blogService.rejectBlog(id.toString(), reason, adminNotes);
       if (success) {
-        // Firebase listener will update the state automatically
         console.log("Blog post rejected successfully");
+        // Firebase listener will sync the final state
       } else {
         console.error("Failed to reject blog post");
+        // Revert optimistic update on failure
+        setBlogPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === id 
+              ? { ...post, status: 'pending' }
+              : post
+          )
+        );
       }
     } catch (error) {
       console.error('Error rejecting blog post:', error);
+      // Revert optimistic update on error
+      setBlogPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === id 
+            ? { ...post, status: 'pending' }
+            : post
+        )
+      );
     }
   };
 

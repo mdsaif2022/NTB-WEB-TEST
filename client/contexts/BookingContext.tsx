@@ -354,25 +354,51 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const deleteBooking = (id: string) => {
-    setBookings((prev) => {
-      const deletedBooking = prev.find(b => b.id === id);
-      const newBookings = prev.filter((booking) => booking.id !== id);
+  const deleteBooking = async (id: string) => {
+    try {
+      // Store original booking for potential rollback
+      const originalBooking = bookings.find(b => b.id === id);
       
-      // Dispatch booking update event for real-time sync
-      if (deletedBooking) {
-        window.dispatchEvent(new CustomEvent('bookingUpdated', {
-          detail: { 
-            action: 'delete', 
-            booking: deletedBooking, 
-            allBookings: newBookings,
-            userEmail: deletedBooking.user.email 
-          }
-        }));
+      // Optimistic update - remove from local state immediately
+      setBookings((prev) => {
+        const deletedBooking = prev.find(b => b.id === id);
+        const newBookings = prev.filter((booking) => booking.id !== id);
+        
+        // Dispatch booking update event for real-time sync
+        if (deletedBooking) {
+          window.dispatchEvent(new CustomEvent('bookingUpdated', {
+            detail: { 
+              action: 'delete', 
+              booking: deletedBooking, 
+              allBookings: newBookings,
+              userEmail: deletedBooking.user.email 
+            }
+          }));
+        }
+        
+        return newBookings;
+      });
+      
+      // Call Firebase service to delete from database
+      const success = await bookingService.deleteBooking(id);
+      if (success) {
+        console.log("Booking deleted successfully");
+        // Firebase listener will sync the final state
+      } else {
+        console.error("Failed to delete booking");
+        // Revert optimistic update on failure
+        if (originalBooking) {
+          setBookings(prev => [...prev, originalBooking]);
+        }
       }
-      
-      return newBookings;
-    });
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+      // Revert optimistic update on error
+      const originalBooking = bookings.find(b => b.id === id);
+      if (originalBooking) {
+        setBookings(prev => [...prev, originalBooking]);
+      }
+    }
   };
 
   const getBookingById = (id: string) => {

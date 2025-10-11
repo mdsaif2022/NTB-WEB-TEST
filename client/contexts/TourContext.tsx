@@ -326,29 +326,73 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
   const updateTour = async (id: number, updatedTour: Partial<Tour>) => {
     try {
+      // Store original tour for potential rollback
+      const originalTour = tours.find(tour => tour.id === id);
+      
+      // Optimistic update - update local state immediately
+      setTours(prevTours => 
+        prevTours.map(tour => 
+          tour.id === id 
+            ? { ...tour, ...updatedTour, updatedAt: new Date().toISOString() }
+            : tour
+        )
+      );
+      
       const success = await tourService.updateTour(id.toString(), updatedTour);
       if (success) {
-        // Firebase listener will update the state automatically
         console.log("Tour updated successfully");
+        // Firebase listener will sync the final state
       } else {
         console.error("Failed to update tour");
+        // Revert optimistic update on failure
+        if (originalTour) {
+          setTours(prevTours => 
+            prevTours.map(tour => 
+              tour.id === id ? originalTour : tour
+            )
+          );
+        }
       }
     } catch (error) {
       console.error('Error updating tour:', error);
+      // Revert optimistic update on error
+      const originalTour = tours.find(tour => tour.id === id);
+      if (originalTour) {
+        setTours(prevTours => 
+          prevTours.map(tour => 
+            tour.id === id ? originalTour : tour
+          )
+        );
+      }
     }
   };
 
   const deleteTour = async (id: number) => {
     try {
+      // Store original tour for potential rollback
+      const originalTour = tours.find(tour => tour.id === id);
+      
+      // Optimistic update - remove from local state immediately
+      setTours(prevTours => prevTours.filter(tour => tour.id !== id));
+      
       const success = await tourService.deleteTour(id.toString());
       if (success) {
-        // Firebase listener will update the state automatically
         console.log("Tour deleted successfully");
+        // Firebase listener will sync the final state
       } else {
         console.error("Failed to delete tour");
+        // Revert optimistic update on failure
+        if (originalTour) {
+          setTours(prevTours => [...prevTours, originalTour]);
+        }
       }
     } catch (error) {
       console.error('Error deleting tour:', error);
+      // Revert optimistic update on error
+      const originalTour = tours.find(tour => tour.id === id);
+      if (originalTour) {
+        setTours(prevTours => [...prevTours, originalTour]);
+      }
     }
   };
 
