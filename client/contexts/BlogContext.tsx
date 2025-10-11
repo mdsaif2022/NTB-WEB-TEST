@@ -258,13 +258,25 @@ export function BlogProvider({ children }: { children: ReactNode }) {
           return firebaseBlogs;
         });
         
-        // Also save to localStorage as backup
+        // Also save to localStorage as backup (compressed version)
         try {
-          const blogsData = JSON.stringify(firebaseBlogs);
-          if (blogsData.length > 5 * 1024 * 1024) { // 5MB limit
+          // Create compressed version with only essential fields
+          const compressedBlogs = firebaseBlogs.map(blog => ({
+            id: blog.id,
+            title: blog.title,
+            author: blog.author,
+            status: blog.status,
+            submissionDate: blog.submissionDate,
+            category: blog.category,
+            // Skip large fields like content, images
+          }));
+          
+          const blogsData = JSON.stringify(compressedBlogs);
+          if (blogsData.length > 2 * 1024 * 1024) { // Reduced to 2MB limit
             console.warn("Blogs data too large for localStorage, skipping save");
           } else {
             localStorage.setItem(BLOGS_STORAGE_KEY, blogsData);
+            console.log(`Saved ${firebaseBlogs.length} blogs to localStorage (${Math.round(blogsData.length / 1024)}KB)`);
           }
         } catch (e) { 
           console.error("Error saving blog posts to storage", e);
@@ -272,6 +284,15 @@ export function BlogProvider({ children }: { children: ReactNode }) {
             try {
               localStorage.removeItem(BLOGS_STORAGE_KEY);
               console.log("Cleared old blogs data due to quota exceeded");
+              
+              // Try saving minimal version
+              const minimalBlogs = firebaseBlogs.slice(0, 10).map(blog => ({
+                id: blog.id,
+                title: blog.title,
+                status: blog.status
+              }));
+              localStorage.setItem(BLOGS_STORAGE_KEY, JSON.stringify(minimalBlogs));
+              console.log("Saved minimal blogs data");
             } catch (clearError) {
               console.error("Error clearing localStorage:", clearError);
             }

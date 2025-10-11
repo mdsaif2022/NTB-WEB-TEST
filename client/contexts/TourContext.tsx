@@ -179,15 +179,31 @@ const loadToursFromStorage = (): Tour[] => {
 // Helper function to save tours to localStorage
 const saveToursToStorage = (tours: Tour[]) => {
   try {
-    const toursData = JSON.stringify(tours);
+    // Create a compressed version with only essential fields for localStorage
+    const compressedTours = tours.map(tour => ({
+      id: tour.id,
+      name: tour.name,
+      location: tour.location,
+      price: tour.price,
+      duration: tour.duration,
+      status: tour.status,
+      rating: tour.rating,
+      bookings: tour.bookings,
+      createdDate: tour.createdDate,
+      // Skip large fields like images, description, highlights, includes
+      // These will be loaded from Firebase when needed
+    }));
+    
+    const toursData = JSON.stringify(compressedTours);
     
     // Check if data is too large (localStorage limit is ~5-10MB)
-    if (toursData.length > 5 * 1024 * 1024) { // 5MB limit
+    if (toursData.length > 2 * 1024 * 1024) { // Reduced to 2MB limit
       console.warn("Tours data too large for localStorage, skipping save");
       return;
     }
     
     localStorage.setItem(TOURS_STORAGE_KEY, toursData);
+    console.log(`Saved ${tours.length} tours to localStorage (${Math.round(toursData.length / 1024)}KB)`);
   } catch (error) {
     console.error("Error saving tours to localStorage:", error);
     
@@ -196,6 +212,16 @@ const saveToursToStorage = (tours: Tour[]) => {
       try {
         localStorage.removeItem(TOURS_STORAGE_KEY);
         console.log("Cleared old tours data due to quota exceeded");
+        
+        // Try saving a minimal version
+        const minimalTours = tours.slice(0, 10).map(tour => ({
+          id: tour.id,
+          name: tour.name,
+          price: tour.price,
+          status: tour.status
+        }));
+        localStorage.setItem(TOURS_STORAGE_KEY, JSON.stringify(minimalTours));
+        console.log("Saved minimal tours data");
       } catch (clearError) {
         console.error("Error clearing localStorage:", clearError);
       }

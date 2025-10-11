@@ -221,13 +221,30 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
           return firebaseBookings;
         });
         
-        // Also save to localStorage as backup
+        // Also save to localStorage as backup (compressed version)
         try {
-          const bookingsData = JSON.stringify(firebaseBookings);
-          if (bookingsData.length > 5 * 1024 * 1024) { // 5MB limit
+          // Create compressed version with only essential fields
+          const compressedBookings = firebaseBookings.map(booking => ({
+            id: booking.id,
+            user: {
+              name: booking.user?.name,
+              email: booking.user?.email,
+              phone: booking.user?.phone
+            },
+            tourId: booking.tourId,
+            tourName: booking.tourName,
+            status: booking.status,
+            bookingDate: booking.bookingDate,
+            amount: booking.amount,
+            // Skip large fields like selectedSeats, customerInfo
+          }));
+          
+          const bookingsData = JSON.stringify(compressedBookings);
+          if (bookingsData.length > 2 * 1024 * 1024) { // Reduced to 2MB limit
             console.warn("Bookings data too large for localStorage, skipping save");
           } else {
             localStorage.setItem(BOOKINGS_STORAGE_KEY, bookingsData);
+            console.log(`Saved ${firebaseBookings.length} bookings to localStorage (${Math.round(bookingsData.length / 1024)}KB)`);
           }
         } catch (e) { 
           console.error("Error saving bookings to storage", e);
@@ -235,6 +252,16 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
             try {
               localStorage.removeItem(BOOKINGS_STORAGE_KEY);
               console.log("Cleared old bookings data due to quota exceeded");
+              
+              // Try saving minimal version
+              const minimalBookings = firebaseBookings.slice(0, 20).map(booking => ({
+                id: booking.id,
+                tourName: booking.tourName,
+                status: booking.status,
+                amount: booking.amount
+              }));
+              localStorage.setItem(BOOKINGS_STORAGE_KEY, JSON.stringify(minimalBookings));
+              console.log("Saved minimal bookings data");
             } catch (clearError) {
               console.error("Error clearing localStorage:", clearError);
             }

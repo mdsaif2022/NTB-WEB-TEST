@@ -29,14 +29,9 @@ export const uploadImage = async (file, folder = 'ntb-web') => {
     });
     
     if (!response.ok) {
-      // If preset fails, try with API key and signature
-      console.log('Preset upload failed, trying with API key...');
-      try {
-        return await uploadImageWithSignature(file, folder);
-      } catch (signatureError) {
-        console.log('Signature upload failed, falling back to base64...');
-        return await uploadImageAsBase64(file, folder);
-      }
+      // If preset fails, skip signature and go directly to base64
+      console.log('Preset upload failed, falling back to base64...');
+      return await uploadImageAsBase64(file, folder);
     }
     
     const result = await response.json();
@@ -148,14 +143,9 @@ export const uploadVideo = async (file, folder = 'ntb-web/videos') => {
     });
     
     if (!response.ok) {
-      // If preset fails, try with API key and signature
-      console.log('Preset upload failed, trying with API key...');
-      try {
-        return await uploadVideoWithSignature(file, folder);
-      } catch (signatureError) {
-        console.log('Signature upload failed, falling back to base64...');
-        return await uploadVideoAsBase64(file, folder);
-      }
+      // If preset fails, skip signature and go directly to base64
+      console.log('Preset upload failed, falling back to base64...');
+      return await uploadVideoAsBase64(file, folder);
     }
     
     const result = await response.json();
