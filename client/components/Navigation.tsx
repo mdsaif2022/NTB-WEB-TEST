@@ -24,7 +24,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 export default function Navigation() {
-  const { settings } = useSettings();
+  const { settings, isLoading } = useSettings();
   const { currentUser: legacyUser, isLoggedIn: legacyIsLoggedIn, logout: legacyLogout } = useUser();
   const { currentUser, userData, logout } = useFirebaseAuth();
   const location = useLocation();
@@ -86,10 +86,18 @@ export default function Navigation() {
             </div>
             <div>
               <h1 className={`text-xl font-bold ${isScrolled ? 'text-emerald-900' : 'text-white'}`}>
-                {settings.siteName}
+                {isLoading ? (
+                  <div className="w-24 h-6 bg-gray-300 animate-pulse rounded"></div>
+                ) : (
+                  settings?.siteName || "Loading..."
+                )}
               </h1>
               <p className={`text-xs font-medium ${isScrolled ? 'text-emerald-700' : 'text-emerald-200'}`}>
-                {settings.siteDescription}
+                {isLoading ? (
+                  <div className="w-32 h-3 bg-gray-300 animate-pulse rounded mt-1"></div>
+                ) : (
+                  settings?.siteDescription || "Loading..."
+                )}
               </p>
             </div>
           </Link>

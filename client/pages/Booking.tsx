@@ -97,7 +97,7 @@ const getSeatSelectionStorageKey = (tourId: string | number) => `echoForgeSeatSe
 export default function Booking() {
   const [searchParams] = useSearchParams();
   const { getTourById, tours } = useTours();
-  const { settings } = useSettings();
+  const { settings, isLoading: settingsLoading } = useSettings();
   const { currentUser, userData, loading: authLoading } = useFirebaseAuth();
   const tourId = searchParams.get("tour");
   const selectedTour = tourId ? getTourById(Number(tourId)) : tours[0];

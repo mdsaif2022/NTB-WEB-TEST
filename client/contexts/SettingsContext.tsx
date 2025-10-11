@@ -47,7 +47,7 @@ interface SiteSettings {
 }
 
 interface SettingsContextType {
-  settings: SiteSettings;
+  settings: SiteSettings | null;
   updateSettings: (newSettings: Partial<SiteSettings>) => void;
   isLoading: boolean;
 }
@@ -99,8 +99,8 @@ const SettingsContext = createContext<SettingsContextType | undefined>(
 );
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
-  const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
-  const [isLoading, setIsLoading] = useState(false);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load settings from Firebase Realtime Database
   useEffect(() => {
@@ -117,7 +117,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             setSettings({ ...defaultSettings, ...parsed });
           } catch (error) {
             console.error("Error loading settings from localStorage:", error);
+            setSettings(defaultSettings);
           }
+        } else {
+          setSettings(defaultSettings);
         }
         setIsLoading(false);
       }, 5000); // 5 second timeout
@@ -141,7 +144,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
               await settingsService.updateSettings(parsed);
             } catch (error) {
               console.error("Error loading settings from localStorage:", error);
+              // Use default settings if localStorage fails
+              setSettings(defaultSettings);
             }
+          } else {
+            // Use default settings if no data available
+            setSettings(defaultSettings);
           }
         }
       } catch (error) {
@@ -155,7 +163,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             setSettings({ ...defaultSettings, ...parsed });
           } catch (error) {
             console.error("Error loading settings from localStorage:", error);
+            setSettings(defaultSettings);
           }
+        } else {
+          setSettings(defaultSettings);
         }
       } finally {
         console.log('SettingsContext: Loading completed, setting loading to false');
@@ -181,6 +192,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
+    if (!settings) return;
+    
     setIsLoading(true);
     const updatedSettings = { ...settings, ...newSettings };
     setSettings(updatedSettings);

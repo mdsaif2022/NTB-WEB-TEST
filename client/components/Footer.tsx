@@ -10,7 +10,7 @@ import {
 import { useSettings } from "../contexts/SettingsContext";
 
 export default function Footer() {
-  const { settings } = useSettings();
+  const { settings, isLoading } = useSettings();
 
   return (
     <footer className="bg-emerald-900 text-white">
@@ -23,9 +23,19 @@ export default function Footer() {
                 <MapPin className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">{settings.siteName}</h3>
+                <h3 className="text-xl font-bold">
+                  {isLoading ? (
+                    <div className="w-24 h-6 bg-emerald-800 animate-pulse rounded"></div>
+                  ) : (
+                    settings?.siteName || "Loading..."
+                  )}
+                </h3>
                 <p className="text-sm text-emerald-300">
-                  {settings.siteDescription}
+                  {isLoading ? (
+                    <div className="w-32 h-4 bg-emerald-800 animate-pulse rounded mt-1"></div>
+                  ) : (
+                    settings?.siteDescription || "Loading..."
+                  )}
                 </p>
               </div>
             </div>

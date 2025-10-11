@@ -35,7 +35,7 @@ export default function AdminDashboard() {
 
   const { tours } = useTours();
   const { blogPosts } = useBlogs();
-  const { settings } = useSettings();
+  const { settings, isLoading: settingsLoading } = useSettings();
   const { bookings, getRecentBookings } = useBookings();
   const { popupAds, getActivePopupAds } = usePopupAds();
 
