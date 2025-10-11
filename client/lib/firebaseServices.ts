@@ -3,6 +3,16 @@ import { ref, set, get, remove, onValue, off, push, update, query, orderByChild,
 import { realtimeDb } from './firebaseConfig';
 import { safeFilter, isValidArray, safeGet } from './safeJsonParse';
 
+// Debug function to check Firebase connection
+const debugFirebaseConnection = () => {
+  console.log('🔍 Firebase Debug Info:');
+  console.log('Realtime Database:', realtimeDb ? '✅ Connected' : '❌ Not connected');
+  if (realtimeDb) {
+    console.log('Database URL:', realtimeDb.app.options.databaseURL);
+  }
+  console.log('Timestamp:', new Date().toISOString());
+};
+
 // Database paths
 const DB_PATHS = {
   TOURS: 'tours',
@@ -100,10 +110,19 @@ export const tourService = {
 
   // Update tour
   async updateTour(id: string, tourData: any) {
-    if (!realtimeDb) return false;
+    debugFirebaseConnection();
+    console.log('🔄 tourService.updateTour: Starting update for tour ID:', id);
+    console.log('🔄 tourService.updateTour: Tour data:', tourData);
+    
+    if (!realtimeDb) {
+      console.error('❌ tourService.updateTour: Firebase Realtime Database not available');
+      return false;
+    }
     
     try {
       const tourRef = ref(realtimeDb, `${DB_PATHS.TOURS}/${id}`);
+      console.log('🔄 tourService.updateTour: Tour ref path:', `${DB_PATHS.TOURS}/${id}`);
+      
       const updates = {
         ...tourData,
         updatedAt: new Date().toISOString()
@@ -111,11 +130,18 @@ export const tourService = {
       
       // Remove undefined values to prevent Firebase errors
       const cleanedUpdates = this.removeUndefinedValues(updates);
+      console.log('🔄 tourService.updateTour: Cleaned updates:', cleanedUpdates);
       
       await update(tourRef, cleanedUpdates);
+      console.log('✅ tourService.updateTour: Tour updated successfully');
       return true;
-    } catch (error) {
-      console.error('Error updating tour:', error);
+    } catch (error: any) {
+      console.error('❌ tourService.updateTour: Error updating tour:', error);
+      console.error('❌ tourService.updateTour: Error details:', {
+        code: error.code,
+        message: error.message,
+        stack: error.stack
+      });
       return false;
     }
   },
@@ -272,15 +298,28 @@ export const blogService = {
 
   // Approve blog
   async approveBlog(id: string, adminNotes?: string) {
+    debugFirebaseConnection();
+    console.log('✅ blogService.approveBlog: Starting approval for blog ID:', id);
+    console.log('✅ blogService.approveBlog: Admin notes:', adminNotes);
+    
     const updateData: any = { status: 'approved' };
     if (adminNotes) {
       updateData.adminNotes = adminNotes;
     }
-    return this.updateBlog(id, updateData);
+    
+    console.log('✅ blogService.approveBlog: Update data:', updateData);
+    const result = await this.updateBlog(id, updateData);
+    console.log('✅ blogService.approveBlog: Result:', result);
+    return result;
   },
 
   // Reject blog
   async rejectBlog(id: string, rejectionReason?: string, adminNotes?: string) {
+    debugFirebaseConnection();
+    console.log('❌ blogService.rejectBlog: Starting rejection for blog ID:', id);
+    console.log('❌ blogService.rejectBlog: Rejection reason:', rejectionReason);
+    console.log('❌ blogService.rejectBlog: Admin notes:', adminNotes);
+    
     const updateData: any = { status: 'rejected' };
     if (rejectionReason) {
       updateData.rejectionReason = rejectionReason;
@@ -288,7 +327,11 @@ export const blogService = {
     if (adminNotes) {
       updateData.adminNotes = adminNotes;
     }
-    return this.updateBlog(id, updateData);
+    
+    console.log('❌ blogService.rejectBlog: Update data:', updateData);
+    const result = await this.updateBlog(id, updateData);
+    console.log('❌ blogService.rejectBlog: Result:', result);
+    return result;
   },
 
   // Listen to blogs changes
@@ -401,10 +444,19 @@ export const bookingService = {
 
   // Update booking
   async updateBooking(id: string, bookingData: any) {
-    if (!realtimeDb) return false;
+    debugFirebaseConnection();
+    console.log('🔄 bookingService.updateBooking: Starting update for booking ID:', id);
+    console.log('🔄 bookingService.updateBooking: Booking data:', bookingData);
+    
+    if (!realtimeDb) {
+      console.error('❌ bookingService.updateBooking: Firebase Realtime Database not available');
+      return false;
+    }
     
     try {
       const bookingRef = ref(realtimeDb, `${DB_PATHS.BOOKINGS}/${id}`);
+      console.log('🔄 bookingService.updateBooking: Booking ref path:', `${DB_PATHS.BOOKINGS}/${id}`);
+      
       const updates = {
         ...bookingData,
         updatedAt: new Date().toISOString()
@@ -412,11 +464,18 @@ export const bookingService = {
       
       // Remove undefined values to prevent Firebase errors
       const cleanedUpdates = this.removeUndefinedValues(updates);
+      console.log('🔄 bookingService.updateBooking: Cleaned updates:', cleanedUpdates);
       
       await update(bookingRef, cleanedUpdates);
+      console.log('✅ bookingService.updateBooking: Booking updated successfully');
       return true;
-    } catch (error) {
-      console.error('Error updating booking:', error);
+    } catch (error: any) {
+      console.error('❌ bookingService.updateBooking: Error updating booking:', error);
+      console.error('❌ bookingService.updateBooking: Error details:', {
+        code: error.code,
+        message: error.message,
+        stack: error.stack
+      });
       return false;
     }
   },

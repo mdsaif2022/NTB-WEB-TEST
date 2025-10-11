@@ -17,7 +17,8 @@
     },
     "settings": {
       ".read": true,
-      ".write": true
+      ".write": true,
+      ".indexOn": ["updatedAt"]
     },
     "notifications": {
       ".read": true,
@@ -33,6 +34,11 @@
       ".read": true,
       ".write": true,
       ".indexOn": ["status", "createdAt"]
+    },
+    "emailNotifications": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["createdAt", "type"]
     },
     "test": {
       ".read": true,
