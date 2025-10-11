@@ -294,6 +294,15 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
           console.error("Error sending booking notification email:", emailError);
           // Don't fail the booking if email fails
         }
+
+        // Send confirmation email to user
+        try {
+          await emailService.sendUserBookingConfirmation(addedBooking);
+          console.log("Booking confirmation email sent to user");
+        } catch (emailError) {
+          console.error("Error sending user booking confirmation email:", emailError);
+          // Don't fail the booking if email fails
+        }
         
         return addedBooking;
       }
@@ -304,7 +313,10 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateBooking = (id: string, updatedBooking: Partial<Booking>) => {
+  const updateBooking = async (id: string, updatedBooking: Partial<Booking>) => {
+    const previousBooking = bookings.find(b => b.id === id);
+    const previousStatus = previousBooking?.status;
+
     setBookings((prev) => {
       const newBookings = prev.map((booking) =>
         booking.id === id ? { ...booking, ...updatedBooking } : booking,
@@ -320,13 +332,26 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
             booking: updatedBookingObj, 
             allBookings: newBookings,
             userEmail: updatedBookingObj.user.email,
-            previousStatus: prev.find(b => b.id === id)?.status
+            previousStatus: previousStatus
           }
         }));
       }
       
       return newBookings;
     });
+
+    // Send user email notification if status changed
+    if (updatedBooking.status && previousStatus && updatedBooking.status !== previousStatus) {
+      const updatedBookingObj = bookings.find(b => b.id === id);
+      if (updatedBookingObj) {
+        try {
+          await emailService.sendUserBookingStatusUpdate(updatedBookingObj, previousStatus, updatedBooking.status);
+          console.log(`Booking status update email sent to user: ${previousStatus} → ${updatedBooking.status}`);
+        } catch (emailError) {
+          console.error("Error sending user booking status update email:", emailError);
+        }
+      }
+    }
   };
 
   const deleteBooking = (id: string) => {

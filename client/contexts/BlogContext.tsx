@@ -325,6 +325,15 @@ export function BlogProvider({ children }: { children: ReactNode }) {
           console.error("Error sending blog notification email:", emailError);
           // Don't fail the blog post if email fails
         }
+
+        // Send confirmation email to user
+        try {
+          await emailService.sendUserBlogConfirmation(addedPost);
+          console.log("Blog confirmation email sent to user");
+        } catch (emailError) {
+          console.error("Error sending user blog confirmation email:", emailError);
+          // Don't fail the blog post if email fails
+        }
         
         return addedPost;
       }
@@ -337,10 +346,26 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
   const updateBlogPost = async (id: number, updatedPost: Partial<BlogPost>) => {
     try {
+      const previousPost = blogPosts.find(p => p.id === id);
+      const previousStatus = previousPost?.status;
+
       const success = await blogService.updateBlog(id.toString(), updatedPost);
       if (success) {
         // Firebase listener will update the state automatically
         console.log("Blog post updated successfully");
+
+        // Send user email notification if status changed
+        if (updatedPost.status && previousStatus && updatedPost.status !== previousStatus) {
+          const updatedPostObj = blogPosts.find(p => p.id === id);
+          if (updatedPostObj) {
+            try {
+              await emailService.sendUserBlogStatusUpdate(updatedPostObj, previousStatus, updatedPost.status);
+              console.log(`Blog status update email sent to user: ${previousStatus} → ${updatedPost.status}`);
+            } catch (emailError) {
+              console.error("Error sending user blog status update email:", emailError);
+            }
+          }
+        }
       } else {
         console.error("Failed to update blog post");
       }
