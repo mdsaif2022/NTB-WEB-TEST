@@ -1103,7 +1103,7 @@ export default function Profile() {
               </div>
               <div>
                 <Label>Tags (comma separated)</Label>
-                <Input value={editForm.tags.join(", ")} onChange={e => handleEditChange("tags", e.target.value.split(",").map(t => t.trim()))} />
+                <Input value={editForm.tags?.join(", ") || ""} onChange={e => handleEditChange("tags", e.target.value.split(",").map(t => t.trim()))} />
               </div>
               <div>
                 <Label>Content</Label>

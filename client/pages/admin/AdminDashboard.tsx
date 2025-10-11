@@ -117,7 +117,7 @@ export default function AdminDashboard() {
     status: booking.status,
     notes: booking.notes,
     persons: booking.persons,
-    seats: booking.selectedSeats.join(", "),
+    seats: booking.selectedSeats?.join(", ") || "No seats selected",
     phone: booking.user.phone,
   }));
 

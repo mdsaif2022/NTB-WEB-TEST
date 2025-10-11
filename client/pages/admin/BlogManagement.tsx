@@ -173,7 +173,7 @@ export default function BlogManagement() {
                     alt={selectedPost.author.name}
                   />
                   <AvatarFallback className="bg-emerald-100 text-emerald-700">
-                    {selectedPost.author.name
+                    {(selectedPost.author?.name || "Unknown")
                       .split(" ")
                       .map((n: string) => n[0])
                       .join("")}
