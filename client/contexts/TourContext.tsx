@@ -257,7 +257,16 @@ export function TourProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = tourService.onToursChange((firebaseTours) => {
       if (firebaseTours.length > 0) {
-        setTours(firebaseTours);
+        // Only update if tours actually changed to prevent infinite re-renders
+        setTours(prevTours => {
+          if (prevTours && JSON.stringify(prevTours) === JSON.stringify(firebaseTours)) {
+            console.log('TourContext: Tours unchanged, skipping update');
+            return prevTours;
+          }
+          console.log('TourContext: Tours changed, updating');
+          return firebaseTours;
+        });
+        
         // Also save to localStorage as backup
         saveToursToStorage(firebaseTours);
       }

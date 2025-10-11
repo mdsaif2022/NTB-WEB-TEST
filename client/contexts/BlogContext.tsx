@@ -248,7 +248,16 @@ export function BlogProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = blogService.onBlogsChange((firebaseBlogs) => {
       if (firebaseBlogs.length > 0) {
-        setBlogPosts(firebaseBlogs);
+        // Only update if blogs actually changed to prevent infinite re-renders
+        setBlogPosts(prevBlogs => {
+          if (prevBlogs && JSON.stringify(prevBlogs) === JSON.stringify(firebaseBlogs)) {
+            console.log('BlogContext: Blogs unchanged, skipping update');
+            return prevBlogs;
+          }
+          console.log('BlogContext: Blogs changed, updating');
+          return firebaseBlogs;
+        });
+        
         // Also save to localStorage as backup
         try {
           const blogsData = JSON.stringify(firebaseBlogs);

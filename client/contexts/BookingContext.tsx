@@ -211,7 +211,16 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = bookingService.onBookingsChange((firebaseBookings) => {
       if (firebaseBookings.length > 0) {
-        setBookings(firebaseBookings);
+        // Only update if bookings actually changed to prevent infinite re-renders
+        setBookings(prevBookings => {
+          if (prevBookings && JSON.stringify(prevBookings) === JSON.stringify(firebaseBookings)) {
+            console.log('BookingContext: Bookings unchanged, skipping update');
+            return prevBookings;
+          }
+          console.log('BookingContext: Bookings changed, updating');
+          return firebaseBookings;
+        });
+        
         // Also save to localStorage as backup
         try {
           const bookingsData = JSON.stringify(firebaseBookings);

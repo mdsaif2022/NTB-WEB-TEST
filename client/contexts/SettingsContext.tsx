@@ -173,7 +173,18 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = settingsService.onSettingsChange((firebaseSettings) => {
       if (firebaseSettings) {
         console.log('SettingsContext: Real-time update received:', firebaseSettings);
-        setSettings({ ...defaultSettings, ...firebaseSettings });
+        const newSettings = { ...defaultSettings, ...firebaseSettings };
+        
+        // Only update if settings actually changed to prevent infinite re-renders
+        setSettings(prevSettings => {
+          if (prevSettings && JSON.stringify(prevSettings) === JSON.stringify(newSettings)) {
+            console.log('SettingsContext: Settings unchanged, skipping update');
+            return prevSettings;
+          }
+          console.log('SettingsContext: Settings changed, updating');
+          return newSettings;
+        });
+        
         // Also save to localStorage as backup
         localStorage.setItem("siteSettings", JSON.stringify(firebaseSettings));
       }
