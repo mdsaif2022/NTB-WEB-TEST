@@ -416,9 +416,23 @@ export const notificationService = {
     
     try {
       const notificationsRef = ref(realtimeDb, DB_PATHS.NOTIFICATIONS);
-      const userNotificationsQuery = query(notificationsRef, orderByChild('userId'), equalTo(userId));
-      const snapshot = await get(userNotificationsQuery);
-      return snapshot.exists() ? Object.values(snapshot.val()) : [];
+      
+      // Try indexed query first
+      try {
+        const userNotificationsQuery = query(notificationsRef, orderByChild('userId'), equalTo(userId));
+        const snapshot = await get(userNotificationsQuery);
+        return snapshot.exists() ? Object.values(snapshot.val()) : [];
+      } catch (indexError) {
+        console.warn('Indexed query failed, falling back to full fetch:', indexError);
+        
+        // Fallback: fetch all notifications and filter client-side
+        const snapshot = await get(notificationsRef);
+        if (snapshot.exists()) {
+          const allNotifications = Object.values(snapshot.val());
+          return allNotifications.filter((notification: any) => notification.userId === userId);
+        }
+        return [];
+      }
     } catch (error) {
       console.error('Error fetching user notifications:', error);
       return [];
@@ -495,13 +509,32 @@ export const notificationService = {
     if (!realtimeDb) return () => {};
     
     const notificationsRef = ref(realtimeDb, DB_PATHS.NOTIFICATIONS);
-    const userNotificationsQuery = query(notificationsRef, orderByChild('userId'), equalTo(userId));
-    const unsubscribe = onValue(userNotificationsQuery, (snapshot) => {
-      const notifications = snapshot.exists() ? Object.values(snapshot.val()) : [];
-      callback(notifications);
-    });
     
-    return () => off(userNotificationsQuery, 'value', unsubscribe);
+    // Try indexed query first
+    try {
+      const userNotificationsQuery = query(notificationsRef, orderByChild('userId'), equalTo(userId));
+      const unsubscribe = onValue(userNotificationsQuery, (snapshot) => {
+        const notifications = snapshot.exists() ? Object.values(snapshot.val()) : [];
+        callback(notifications);
+      });
+      
+      return () => off(userNotificationsQuery, 'value', unsubscribe);
+    } catch (indexError) {
+      console.warn('Indexed listener failed, falling back to full listener:', indexError);
+      
+      // Fallback: listen to all notifications and filter client-side
+      const unsubscribe = onValue(notificationsRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const allNotifications = Object.values(snapshot.val());
+          const userNotifications = allNotifications.filter((notification: any) => notification.userId === userId);
+          callback(userNotifications);
+        } else {
+          callback([]);
+        }
+      });
+      
+      return () => off(notificationsRef, 'value', unsubscribe);
+    }
   }
 };
 
