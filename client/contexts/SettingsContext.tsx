@@ -107,23 +107,30 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const loadSettings = async () => {
       console.log('SettingsContext: Starting to load settings...');
       
+      // First, try to load from localStorage immediately for fast initial load
+      const savedSettings = localStorage.getItem("siteSettings");
+      if (savedSettings) {
+        try {
+          const parsed = JSON.parse(savedSettings);
+          console.log('SettingsContext: Loading from localStorage immediately:', parsed);
+          setSettings({ ...defaultSettings, ...parsed });
+          setIsLoading(false); // Stop loading immediately with localStorage data
+        } catch (error) {
+          console.error("Error loading settings from localStorage:", error);
+        }
+      } else {
+        // If no localStorage data, use defaults immediately
+        console.log('SettingsContext: No localStorage data, using defaults immediately');
+        setSettings(defaultSettings);
+        setIsLoading(false);
+      }
+      
       // Set a timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
-        console.log('SettingsContext: Timeout reached, using localStorage fallback');
-        const savedSettings = localStorage.getItem("siteSettings");
-        if (savedSettings) {
-          try {
-            const parsed = JSON.parse(savedSettings);
-            setSettings({ ...defaultSettings, ...parsed });
-          } catch (error) {
-            console.error("Error loading settings from localStorage:", error);
-            setSettings(defaultSettings);
-          }
-        } else {
-          setSettings(defaultSettings);
-        }
+        console.log('SettingsContext: Timeout reached, Firebase loading failed');
+        // Don't change settings here since we already loaded from localStorage/defaults
         setIsLoading(false);
-      }, 5000); // 5 second timeout
+      }, 3000); // Reduced timeout to 3 seconds
       
       try {
         const firebaseSettings = await settingsService.getSettings();
@@ -131,46 +138,30 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         console.log('SettingsContext: Firebase settings loaded:', firebaseSettings);
         
         if (firebaseSettings) {
+          // Update with Firebase data (this will override localStorage data)
+          console.log('SettingsContext: Updating with Firebase data');
           setSettings({ ...defaultSettings, ...firebaseSettings });
+          // Save to localStorage for future fast loading
+          localStorage.setItem("siteSettings", JSON.stringify(firebaseSettings));
         } else {
-          // Fallback to localStorage if no Firebase data
-          console.log('SettingsContext: No Firebase data, using localStorage fallback');
+          // No Firebase data, but we already loaded from localStorage/defaults
+          console.log('SettingsContext: No Firebase data, keeping current settings');
+          // If we have localStorage data, save it to Firebase for future use
           const savedSettings = localStorage.getItem("siteSettings");
           if (savedSettings) {
             try {
               const parsed = JSON.parse(savedSettings);
-              setSettings({ ...defaultSettings, ...parsed });
-              // Save to Firebase for future use
               await settingsService.updateSettings(parsed);
             } catch (error) {
-              console.error("Error loading settings from localStorage:", error);
-              // Use default settings if localStorage fails
-              setSettings(defaultSettings);
+              console.error("Error saving settings to Firebase:", error);
             }
-          } else {
-            // Use default settings if no data available
-            setSettings(defaultSettings);
           }
         }
       } catch (error) {
         clearTimeout(timeoutId);
-        console.error('SettingsContext: Error loading settings:', error);
-        // Fallback to localStorage
-        const savedSettings = localStorage.getItem("siteSettings");
-        if (savedSettings) {
-          try {
-            const parsed = JSON.parse(savedSettings);
-            setSettings({ ...defaultSettings, ...parsed });
-          } catch (error) {
-            console.error("Error loading settings from localStorage:", error);
-            setSettings(defaultSettings);
-          }
-        } else {
-          setSettings(defaultSettings);
-        }
-      } finally {
-        console.log('SettingsContext: Loading completed, setting loading to false');
-        setIsLoading(false);
+        console.error('SettingsContext: Error loading settings from Firebase:', error);
+        // Keep current settings (already loaded from localStorage/defaults)
+        console.log('SettingsContext: Keeping current settings due to Firebase error');
       }
     };
 

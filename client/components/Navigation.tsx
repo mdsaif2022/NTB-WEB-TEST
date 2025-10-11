@@ -86,17 +86,17 @@ export default function Navigation() {
             </div>
             <div>
               <h1 className={`text-xl font-bold ${isScrolled ? 'text-emerald-900' : 'text-white'}`}>
-                {isLoading ? (
+                {isLoading && !settings?.siteName ? (
                   <div className="w-24 h-6 bg-gray-300 animate-pulse rounded"></div>
                 ) : (
-                  settings?.siteName || "Loading..."
+                  settings?.siteName || "Explore BD"
                 )}
               </h1>
               <p className={`text-xs font-medium ${isScrolled ? 'text-emerald-700' : 'text-emerald-200'}`}>
-                {isLoading ? (
+                {isLoading && !settings?.siteDescription ? (
                   <div className="w-32 h-3 bg-gray-300 animate-pulse rounded mt-1"></div>
                 ) : (
-                  settings?.siteDescription || "Loading..."
+                  settings?.siteDescription || "Discover the Beauty of Bangladesh"
                 )}
               </p>
             </div>

@@ -24,17 +24,17 @@ export default function Footer() {
               </div>
               <div>
                 <h3 className="text-xl font-bold">
-                  {isLoading ? (
+                  {isLoading && !settings?.siteName ? (
                     <div className="w-24 h-6 bg-emerald-800 animate-pulse rounded"></div>
                   ) : (
-                    settings?.siteName || "Loading..."
+                    settings?.siteName || "Explore BD"
                   )}
                 </h3>
                 <p className="text-sm text-emerald-300">
-                  {isLoading ? (
+                  {isLoading && !settings?.siteDescription ? (
                     <div className="w-32 h-4 bg-emerald-800 animate-pulse rounded mt-1"></div>
                   ) : (
-                    settings?.siteDescription || "Loading..."
+                    settings?.siteDescription || "Discover the Beauty of Bangladesh"
                   )}
                 </p>
               </div>
@@ -167,7 +167,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-emerald-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-emerald-300 text-sm">
-            © 2024 {settings?.siteName || "Loading..."}. All rights reserved.
+            © 2024 {settings?.siteName || "Explore BD"}. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <span className="text-emerald-300 text-sm hover:text-white cursor-pointer">
