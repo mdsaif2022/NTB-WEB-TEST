@@ -37,6 +37,7 @@ import NewTour from "./pages/admin/NewTour";
 import NotificationManagement from "./pages/admin/NotificationManagement";
 import NotFound from "./pages/NotFound";
 import BookingManagement from "./pages/admin/BookingManagement";
+import PopupAdsManagement from "./pages/admin/PopupAdsManagement";
 import { HelmetProvider } from 'react-helmet-async';
 import AdminLogin from "./pages/admin/AdminLogin";
 import ScrollToTop from "./components/ScrollToTop";
@@ -97,6 +98,7 @@ const App = () => (
                           <Route path="notifications" element={<NotificationManagement />} />
                           <Route path="settings" element={<AdminSettings />} />
                           <Route path="bookings" element={<BookingManagement />} />
+                          <Route path="popup-ads" element={<PopupAdsManagement />} />
                         </Route>
 
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
