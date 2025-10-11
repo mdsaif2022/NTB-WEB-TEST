@@ -2,15 +2,18 @@
   "rules": {
     "tours": {
       ".read": true,
-      ".write": true
+      ".write": true,
+      ".indexOn": ["status", "createdDate"]
     },
     "blogs": {
       ".read": true,
-      ".write": true
+      ".write": true,
+      ".indexOn": ["status", "submissionDate", "author.email"]
     },
     "bookings": {
       ".read": true,
-      ".write": true
+      ".write": true,
+      ".indexOn": ["userId", "status", "bookingDate", "tourId"]
     },
     "settings": {
       ".read": true,
@@ -18,15 +21,18 @@
     },
     "notifications": {
       ".read": true,
-      ".write": true
+      ".write": true,
+      ".indexOn": ["userId", "read", "createdAt"]
     },
     "users": {
       ".read": true,
-      ".write": true
+      ".write": true,
+      ".indexOn": ["email", "role"]
     },
     "popupAds": {
       ".read": true,
-      ".write": true
+      ".write": true,
+      ".indexOn": ["isActive", "targetAudience"]
     },
     "test": {
       ".read": true,
