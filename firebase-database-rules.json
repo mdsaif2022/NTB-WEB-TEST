@@ -42,7 +42,9 @@
       ".read": true,
       ".write": true
     },
-    ".read": true,
-    ".write": true
+    "$other": {
+      ".read": true,
+      ".write": true
+    }
   }
 }
