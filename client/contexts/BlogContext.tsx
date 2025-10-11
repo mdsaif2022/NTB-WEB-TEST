@@ -390,7 +390,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
   const approveBlogPost = async (id: number, adminNotes?: string) => {
     try {
-      const success = await blogService.approveBlog(id.toString());
+      const success = await blogService.approveBlog(id.toString(), adminNotes);
       if (success) {
         // Firebase listener will update the state automatically
         console.log("Blog post approved successfully");
@@ -404,7 +404,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
   const rejectBlogPost = async (id: number, reason: string, adminNotes?: string) => {
     try {
-      const success = await blogService.rejectBlog(id.toString());
+      const success = await blogService.rejectBlog(id.toString(), reason, adminNotes);
       if (success) {
         // Firebase listener will update the state automatically
         console.log("Blog post rejected successfully");

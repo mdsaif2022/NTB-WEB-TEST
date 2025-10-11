@@ -87,8 +87,11 @@ export const tourService = {
         updatedAt: new Date().toISOString()
       };
       
-      await set(newTourRef, tour);
-      return tour;
+      // Remove undefined values to prevent Firebase errors
+      const cleanedTour = this.removeUndefinedValues(tour);
+      
+      await set(newTourRef, cleanedTour);
+      return cleanedTour;
     } catch (error) {
       console.error('Error adding tour:', error);
       return null;
@@ -106,7 +109,10 @@ export const tourService = {
         updatedAt: new Date().toISOString()
       };
       
-      await update(tourRef, updates);
+      // Remove undefined values to prevent Firebase errors
+      const cleanedUpdates = this.removeUndefinedValues(updates);
+      
+      await update(tourRef, cleanedUpdates);
       return true;
     } catch (error) {
       console.error('Error updating tour:', error);
@@ -217,8 +223,11 @@ export const blogService = {
         updatedAt: new Date().toISOString()
       };
       
-      await set(newBlogRef, blog);
-      return blog;
+      // Remove undefined values to prevent Firebase errors
+      const cleanedBlog = this.removeUndefinedValues(blog);
+      
+      await set(newBlogRef, cleanedBlog);
+      return cleanedBlog;
     } catch (error) {
       console.error('Error adding blog:', error);
       return null;
@@ -236,7 +245,10 @@ export const blogService = {
         updatedAt: new Date().toISOString()
       };
       
-      await update(blogRef, updates);
+      // Remove undefined values to prevent Firebase errors
+      const cleanedUpdates = this.removeUndefinedValues(updates);
+      
+      await update(blogRef, cleanedUpdates);
       return true;
     } catch (error) {
       console.error('Error updating blog:', error);
@@ -259,13 +271,24 @@ export const blogService = {
   },
 
   // Approve blog
-  async approveBlog(id: string) {
-    return this.updateBlog(id, { status: 'approved' });
+  async approveBlog(id: string, adminNotes?: string) {
+    const updateData: any = { status: 'approved' };
+    if (adminNotes) {
+      updateData.adminNotes = adminNotes;
+    }
+    return this.updateBlog(id, updateData);
   },
 
   // Reject blog
-  async rejectBlog(id: string) {
-    return this.updateBlog(id, { status: 'rejected' });
+  async rejectBlog(id: string, rejectionReason?: string, adminNotes?: string) {
+    const updateData: any = { status: 'rejected' };
+    if (rejectionReason) {
+      updateData.rejectionReason = rejectionReason;
+    }
+    if (adminNotes) {
+      updateData.adminNotes = adminNotes;
+    }
+    return this.updateBlog(id, updateData);
   },
 
   // Listen to blogs changes
