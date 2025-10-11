@@ -45,6 +45,7 @@ import DemoModeBanner from "./components/DemoModeBanner";
 import { isDemoConfig } from "./lib/firebaseConfig";
 import FirebaseTest from "./components/FirebaseTest";
 import FirebaseDiagnostics from "./components/FirebaseDiagnostics";
+import FirebaseConnectionTest from "./components/FirebaseConnectionTest";
 import AdsterraAds from "./components/AdsterraAds";
 
 const queryClient = new QueryClient();
@@ -87,6 +88,7 @@ const App = () => (
                         <Route path="/notifications" element={<Notifications />} />
                             <Route path="/firebase-test" element={<FirebaseTest />} />
                             <Route path="/firebase-diagnostics" element={<FirebaseDiagnostics />} />
+                            <Route path="/firebase-connection-test" element={<FirebaseConnectionTest />} />
 
                         {/* Admin Routes */}
                         <Route path="/admin" element={<AdminLayout />}>
