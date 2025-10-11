@@ -189,7 +189,7 @@ export default function AdminSettings() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       const exportData = {
-        siteName: settings.siteName,
+        siteName: settings?.siteName || "Unknown Site",
         tours: [],
         blogs: [],
         users: [],
@@ -265,7 +265,7 @@ export default function AdminSettings() {
                     Site Name
                   </label>
                   <Input
-                    value={settings.siteName}
+                    value={settings?.siteName || ""}
                     onChange={(e) =>
                       handleSettingChange("siteName", e.target.value)
                     }

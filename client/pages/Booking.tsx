@@ -1047,8 +1047,8 @@ export default function Booking() {
                           <MapPin className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <h2 className="text-lg font-bold text-white">{settings.siteName}</h2>
-                          <p className="text-emerald-200 text-xs">{settings.siteDescription}</p>
+                          <h2 className="text-lg font-bold text-white">{settings?.siteName || "Loading..."}</h2>
+                          <p className="text-emerald-200 text-xs">{settings?.siteDescription || "Loading..."}</p>
                         </div>
                       </div>
                       <Separator className="bg-emerald-300/30" />
@@ -1193,8 +1193,8 @@ export default function Booking() {
                         <MapPin className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-lg font-bold text-white">{settings.siteName}</h2>
-                        <p className="text-emerald-200 text-xs">{settings.siteDescription}</p>
+                        <h2 className="text-lg font-bold text-white">{settings?.siteName || "Loading..."}</h2>
+                        <p className="text-emerald-200 text-xs">{settings?.siteDescription || "Loading..."}</p>
                       </div>
                     </div>
                     <Separator className="bg-emerald-300/30" />
@@ -1433,7 +1433,7 @@ export default function Booking() {
                         </span>
                       </div>
                       <div className="whitespace-pre-line leading-relaxed">
-                          {settings.paymentInstructions || "Contact the admin for manual payment details."}
+                          {settings?.paymentInstructions || "Contact the admin for manual payment details."}
                       </div>
                     </div>
                   </div>
@@ -1448,9 +1448,9 @@ export default function Booking() {
                         </div>
                         <div className="mb-3">
                           <strong>bKash Number: </strong>
-                          <span className="font-mono bg-pink-100 px-2 py-1 rounded">{settings.bkashNumber}</span>
+                          <span className="font-mono bg-pink-100 px-2 py-1 rounded">{settings?.bkashNumber || "Loading..."}</span>
                         </div>
-                        <div className="whitespace-pre-line leading-relaxed">{settings.paymentInstructions}</div>
+                        <div className="whitespace-pre-line leading-relaxed">{settings?.paymentInstructions || "Loading..."}</div>
                       </div>
                     </div>
                   )}
@@ -1532,7 +1532,7 @@ export default function Booking() {
                           🎉 Booking Approved!
                         </h2>
                         <p className="text-gray-600 mb-6">
-                          Thank you for booking with {settings.siteName}! Your booking has been approved and you will receive an SMS confirmation shortly.
+                          Thank you for booking with {settings?.siteName || "us"}! Your booking has been approved and you will receive an SMS confirmation shortly.
                         </p>
                       </>
                     )}
