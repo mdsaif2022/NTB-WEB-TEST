@@ -23,6 +23,29 @@ const DB_PATHS = {
   SETTINGS: 'settings'
 };
 
+// Helper function to remove undefined values from an object
+const removeUndefinedValues = (obj: any): any => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeUndefinedValues(item));
+  }
+  
+  if (typeof obj === 'object') {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = removeUndefinedValues(value);
+      }
+    }
+    return cleaned;
+  }
+  
+  return obj;
+};
+
 // Tour Services
 export const tourService = {
   // Get all tours
@@ -98,7 +121,7 @@ export const tourService = {
       };
       
       // Remove undefined values to prevent Firebase errors
-      const cleanedTour = this.removeUndefinedValues(tour);
+      const cleanedTour = removeUndefinedValues(tour);
       
       await set(newTourRef, cleanedTour);
       return cleanedTour;
@@ -129,7 +152,7 @@ export const tourService = {
       };
       
       // Remove undefined values to prevent Firebase errors
-      const cleanedUpdates = this.removeUndefinedValues(updates);
+      const cleanedUpdates = removeUndefinedValues(updates);
       console.log('🔄 tourService.updateTour: Cleaned updates:', cleanedUpdates);
       
       await update(tourRef, cleanedUpdates);
@@ -269,7 +292,7 @@ export const blogService = {
       };
       
       // Remove undefined values to prevent Firebase errors
-      const cleanedBlog = this.removeUndefinedValues(blog);
+      const cleanedBlog = removeUndefinedValues(blog);
       
       await set(newBlogRef, cleanedBlog);
       return cleanedBlog;
@@ -291,7 +314,7 @@ export const blogService = {
       };
       
       // Remove undefined values to prevent Firebase errors
-      const cleanedUpdates = this.removeUndefinedValues(updates);
+      const cleanedUpdates = removeUndefinedValues(updates);
       
       await update(blogRef, cleanedUpdates);
       return true;
@@ -397,29 +420,6 @@ export const bookingService = {
     }
   },
 
-  // Helper function to remove undefined values from an object
-  removeUndefinedValues(obj: any): any {
-    if (obj === null || obj === undefined) {
-      return obj;
-    }
-    
-    if (Array.isArray(obj)) {
-      return obj.map(item => this.removeUndefinedValues(item));
-    }
-    
-    if (typeof obj === 'object') {
-      const cleaned: any = {};
-      for (const [key, value] of Object.entries(obj)) {
-        if (value !== undefined) {
-          cleaned[key] = this.removeUndefinedValues(value);
-        }
-      }
-      return cleaned;
-    }
-    
-    return obj;
-  },
-
   // Add new booking
   async addBooking(bookingData: any) {
     if (!realtimeDb) {
@@ -444,7 +444,7 @@ export const bookingService = {
       };
       
       // Remove undefined values to prevent Firebase errors
-      const cleanedBooking = this.removeUndefinedValues(booking);
+      const cleanedBooking = removeUndefinedValues(booking);
       
       console.log('bookingService.addBooking: Attempting to write booking:', cleanedBooking);
       await set(newBookingRef, cleanedBooking);
@@ -491,7 +491,7 @@ export const bookingService = {
       };
       
       // Remove undefined values to prevent Firebase errors
-      const cleanedUpdates = this.removeUndefinedValues(updates);
+      const cleanedUpdates = removeUndefinedValues(updates);
       console.log('🔄 bookingService.updateBooking: Cleaned updates:', cleanedUpdates);
       
       await update(bookingRef, cleanedUpdates);
