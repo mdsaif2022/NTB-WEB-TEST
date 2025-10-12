@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Helmet } from 'react-helmet-async';
 import { Link } from "react-router-dom";
 import { bookingService } from "@/lib/firebaseServices";
+import { toast } from "@/hooks/use-toast";
 
 const STATUS_FILTERS = [
   { label: "All", value: "all" },
@@ -27,7 +28,7 @@ function getBadgeVariant(status: string) {
 
 export default function MyBookings() {
   const { userProfile, currentUser } = useUser();
-  const { bookings, updateBooking, loading } = useBookings();
+  const { bookings, updateBooking, loading, refreshBookings } = useBookings();
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   // Debug logging
@@ -39,6 +40,16 @@ export default function MyBookings() {
       bookings: bookings.map(b => ({ id: b.id, userEmail: b.user?.email, status: b.status }))
     });
   }, [userProfile, currentUser, bookings]);
+
+  // Periodic refresh fallback in case Firebase listener fails
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('MyBookings: Periodic refresh check...');
+      refreshBookings();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [refreshBookings]);
 
   // Filter bookings for the current user - try both userProfile and currentUser emails
   const userBookings = bookings.filter((booking) => {
@@ -54,8 +65,18 @@ export default function MyBookings() {
     try {
       await updateBooking(bookingId, { status: "cancelled" });
       console.log("Booking cancelled successfully:", bookingId);
+      toast({
+        title: "Success",
+        description: "Booking has been cancelled successfully.",
+        variant: "default",
+      });
     } catch (error) {
       console.error("Error cancelling booking:", error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel booking. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -127,9 +148,17 @@ export default function MyBookings() {
             <Button
               variant="outline"
               onClick={addTestBooking}
-              className="ml-auto text-xs"
+              className="text-xs"
             >
               Add Test Booking
+            </Button>
+            <Button
+              variant="outline"
+              onClick={refreshBookings}
+              className="text-xs"
+              disabled={loading}
+            >
+              {loading ? 'Refreshing...' : 'Refresh'}
             </Button>
           </div>
           {/* Debug Info */}

@@ -35,6 +35,7 @@ interface BookingContextType {
   getRecentBookings: (limit?: number) => Booking[];
   getPendingBookings: () => Booking[];
   getConfirmedBookings: () => Booking[];
+  refreshBookings: () => Promise<void>;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
@@ -217,16 +218,9 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
         sampleBookings: firebaseBookings.slice(0, 3).map(b => ({ id: b.id, status: b.status, userEmail: b.user?.email }))
       });
       
-      if (firebaseBookings.length > 0) {
-        // Only update if bookings actually changed to prevent infinite re-renders
-        setBookings(prevBookings => {
-          if (prevBookings && JSON.stringify(prevBookings) === JSON.stringify(firebaseBookings)) {
-            console.log('BookingContext: Bookings unchanged, skipping update');
-            return prevBookings;
-          }
-          console.log('BookingContext: Bookings changed, updating state');
-          return firebaseBookings;
-        });
+      // Always update state when Firebase data changes for real-time sync
+      console.log('BookingContext: Updating state with Firebase data');
+      setBookings(firebaseBookings);
         
         // Also save to localStorage as backup (compressed version)
         try {
@@ -324,36 +318,16 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
     const previousStatus = previousBooking?.status;
 
     try {
-      // Update in Firebase first
+      console.log('BookingContext: Updating booking in Firebase:', { id, updatedBooking });
+      
+      // Update in Firebase - the listener will handle state updates
       const success = await bookingService.updateBooking(id, updatedBooking);
       if (!success) {
         console.error('Failed to update booking in Firebase');
         return;
       }
 
-      // Then update local state
-      setBookings((prev) => {
-        const newBookings = prev.map((booking) =>
-          booking.id === id ? { ...booking, ...updatedBooking } : booking,
-        );
-        
-        const updatedBookingObj = newBookings.find(b => b.id === id);
-        
-        // Dispatch booking update event for real-time sync
-        if (updatedBookingObj) {
-          window.dispatchEvent(new CustomEvent('bookingUpdated', {
-            detail: { 
-              action: 'update', 
-              booking: updatedBookingObj, 
-              allBookings: newBookings,
-              userEmail: updatedBookingObj.user.email,
-              previousStatus: previousStatus
-            }
-          }));
-        }
-        
-        return newBookings;
-      });
+      console.log('BookingContext: Booking updated in Firebase successfully');
 
       // Send user email notification if status changed
       if (updatedBooking.status && previousStatus && updatedBooking.status !== previousStatus) {
@@ -374,48 +348,17 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteBooking = async (id: string) => {
     try {
-      // Store original booking for potential rollback
-      const originalBooking = bookings.find(b => b.id === id);
+      console.log('BookingContext: Deleting booking from Firebase:', id);
       
-      // Optimistic update - remove from local state immediately
-      setBookings((prev) => {
-        const deletedBooking = prev.find(b => b.id === id);
-        const newBookings = prev.filter((booking) => booking.id !== id);
-        
-        // Dispatch booking update event for real-time sync
-        if (deletedBooking) {
-          window.dispatchEvent(new CustomEvent('bookingUpdated', {
-            detail: { 
-              action: 'delete', 
-              booking: deletedBooking, 
-              allBookings: newBookings,
-              userEmail: deletedBooking.user.email 
-            }
-          }));
-        }
-        
-        return newBookings;
-      });
-      
-      // Call Firebase service to delete from database
+      // Delete from Firebase - the listener will handle state updates
       const success = await bookingService.deleteBooking(id);
       if (success) {
-        console.log("Booking deleted successfully");
-        // Firebase listener will sync the final state
+        console.log("Booking deleted successfully from Firebase");
       } else {
-        console.error("Failed to delete booking");
-        // Revert optimistic update on failure
-        if (originalBooking) {
-          setBookings(prev => [...prev, originalBooking]);
-        }
+        console.error("Failed to delete booking from Firebase");
       }
     } catch (error) {
       console.error('Error deleting booking:', error);
-      // Revert optimistic update on error
-      const originalBooking = bookings.find(b => b.id === id);
-      if (originalBooking) {
-        setBookings(prev => [...prev, originalBooking]);
-      }
     }
   };
 
@@ -440,6 +383,20 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
     return bookings.filter((booking) => booking.status === "confirmed");
   };
 
+  const refreshBookings = async () => {
+    console.log('BookingContext: Force refreshing bookings...');
+    setLoading(true);
+    try {
+      const firebaseBookings = await bookingService.getAllBookings();
+      console.log('BookingContext: Refreshed bookings from Firebase:', firebaseBookings.length);
+      setBookings(firebaseBookings);
+    } catch (error) {
+      console.error('BookingContext: Error refreshing bookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <BookingContext.Provider
       value={{
@@ -452,6 +409,7 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
         getRecentBookings,
         getPendingBookings,
         getConfirmedBookings,
+        refreshBookings,
       }}
     >
       {children}
