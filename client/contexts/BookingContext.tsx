@@ -210,7 +210,13 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
 
   // Listen to Firebase Realtime Database changes
   useEffect(() => {
+    console.log('BookingContext: Setting up Firebase listener...');
     const unsubscribe = bookingService.onBookingsChange((firebaseBookings) => {
+      console.log('BookingContext: Firebase listener triggered', {
+        firebaseBookingsCount: firebaseBookings.length,
+        sampleBookings: firebaseBookings.slice(0, 3).map(b => ({ id: b.id, status: b.status, userEmail: b.user?.email }))
+      });
+      
       if (firebaseBookings.length > 0) {
         // Only update if bookings actually changed to prevent infinite re-renders
         setBookings(prevBookings => {
@@ -218,7 +224,7 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
             console.log('BookingContext: Bookings unchanged, skipping update');
             return prevBookings;
           }
-          console.log('BookingContext: Bookings changed, updating');
+          console.log('BookingContext: Bookings changed, updating state');
           return firebaseBookings;
         });
         

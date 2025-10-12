@@ -558,15 +558,34 @@ export const bookingService = {
 
   // Listen to bookings changes
   onBookingsChange(callback: (bookings: any[]) => void) {
-    if (!realtimeDb) return () => {};
+    console.log('bookingService.onBookingsChange: Setting up listener...');
+    
+    if (!realtimeDb) {
+      console.error('bookingService.onBookingsChange: Firebase Realtime Database not available');
+      return () => {};
+    }
     
     const bookingsRef = ref(realtimeDb, DB_PATHS.BOOKINGS);
+    console.log('bookingService.onBookingsChange: Listening to path:', DB_PATHS.BOOKINGS);
+    
     const unsubscribe = onValue(bookingsRef, (snapshot) => {
+      console.log('bookingService.onBookingsChange: Snapshot received', {
+        exists: snapshot.exists(),
+        hasChildren: snapshot.hasChildren(),
+        numChildren: snapshot.numChildren()
+      });
+      
       const bookings = snapshot.exists() ? Object.values(snapshot.val()) : [];
+      console.log('bookingService.onBookingsChange: Processed bookings count:', bookings.length);
       callback(bookings);
+    }, (error) => {
+      console.error('bookingService.onBookingsChange: Listener error:', error);
     });
     
-    return () => off(bookingsRef, 'value', unsubscribe);
+    return () => {
+      console.log('bookingService.onBookingsChange: Unsubscribing listener');
+      off(bookingsRef, 'value', unsubscribe);
+    };
   }
 };
 
