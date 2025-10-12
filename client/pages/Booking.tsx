@@ -101,6 +101,23 @@ export default function Booking() {
   const tourId = searchParams.get("tour");
   const selectedTour = tourId ? getTourById(tourId) : tours[0];
 
+  // Early return if no tour is available and not loading
+  if (!toursLoading && !selectedTour) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h2 className="text-2xl font-bold text-red-600 mb-4">Tour Not Found</h2>
+        <p className="text-gray-600 mb-4">The selected tour does not exist. Please go back and select a valid tour.</p>
+        <div className="text-sm text-gray-500 mb-4">
+          <p>Debug Info:</p>
+          <p>Tour ID: {tourId}</p>
+          <p>Total Tours: {tours.length}</p>
+          <p>Tours Loading: {toursLoading ? 'Yes' : 'No'}</p>
+        </div>
+        <Link to="/tours" className="mt-4 text-blue-600 underline">Back to Tours</Link>
+      </div>
+    );
+  }
+
   // Debug logging
   useEffect(() => {
     console.log('Booking: Debug info', {
@@ -122,6 +139,7 @@ export default function Booking() {
       </div>
     );
   }
+
 
   // Check if user is authenticated
   if (!currentUser) {
@@ -224,22 +242,7 @@ export default function Booking() {
     );
   }
 
-  if (!selectedTour) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <h2 className="text-2xl font-bold text-red-600 mb-4">Tour Not Found</h2>
-        <p className="text-gray-600 mb-4">The selected tour does not exist. Please go back and select a valid tour.</p>
-        <div className="text-sm text-gray-500 mb-4">
-          <p>Debug Info:</p>
-          <p>Tour ID: {tourId}</p>
-          <p>Total Tours: {tours.length}</p>
-          <p>Tours Loading: {toursLoading ? 'Yes' : 'No'}</p>
-        </div>
-        <Link to="/tours" className="mt-4 text-blue-600 underline">Back to Tours</Link>
-      </div>
-    );
-  }
-  const seatSelectionStorageKey = getSeatSelectionStorageKey(selectedTour.id);
+  const seatSelectionStorageKey = getSeatSelectionStorageKey(selectedTour?.id || "");
 
   const [step, setStep] = useState(1);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -260,7 +263,7 @@ export default function Booking() {
     paymentProof: File | null;
   }>({
     from: "",
-    to: selectedTour.destination, // Set fixed destination based on selected tour
+    to: selectedTour?.destination || "", // Set fixed destination based on selected tour
     persons: 1,
     date: "",
     // Each bus has its own selectedSeats array
@@ -377,17 +380,20 @@ export default function Booking() {
 
   // On mount or tour change, fetch seat map
   useEffect(() => {
-    fetchTourSeats();
+    if (selectedTour?.id) {
+      fetchTourSeats();
+    }
     // eslint-disable-next-line
-  }, [selectedTour.id]);
+  }, [selectedTour?.id]);
 
   // Poll for seat map updates every 5s
   useEffect(() => {
+    if (!selectedTour?.id) return;
     const interval = setInterval(() => {
       fetchTourSeats();
     }, 5000);
     return () => clearInterval(interval);
-  }, [selectedTour.id]);
+  }, [selectedTour?.id]);
 
   // Generate or load a user/session ID for seat reservation
   // Use Firebase user ID if available, otherwise generate a temporary one
@@ -599,7 +605,7 @@ export default function Booking() {
     }
   }, [bookingStatus, bookingId, addNotification]);
 
-  const totalAmount = selectedTour.price * bookingData.persons;
+  const totalAmount = (selectedTour?.price || 0) * (bookingData?.persons || 1);
 
   const handleDownloadImage = async () => {
     if (summaryRef.current) {
