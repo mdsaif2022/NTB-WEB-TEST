@@ -4,13 +4,47 @@ import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Clock, Users, Star } from "lucide-react";
+import { MapPin, Clock, Users, Star, RefreshCw } from "lucide-react";
 import { useTours } from "@/contexts/TourContext";
 import { Helmet } from 'react-helmet-async';
+import { useToast } from "@/hooks/use-toast";
 
 export default function Tours() {
-  const { tours: allTours, getActiveTours } = useTours();
+  const { tours: allTours, getActiveTours, refreshToursFromFirebase, loading } = useTours();
   const tours = getActiveTours();
+  const { toast } = useToast();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshToursFromFirebase();
+      toast({
+        title: "Success",
+        description: "Tours refreshed successfully.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error refreshing tours:", error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh tours. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Periodic refresh fallback (every 30 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('Tours: Periodic refresh check...');
+      refreshToursFromFirebase();
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [refreshToursFromFirebase]);
 
 
   return (
@@ -46,11 +80,23 @@ export default function Tours() {
       {/* Tours Grid */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Tour Stats */}
+          {/* Tour Stats and Refresh Button */}
           <div className="mb-8 text-center">
-            <p className="text-gray-600">
-              Showing {tours.length} active tour{tours.length !== 1 ? "s" : ""}
-            </p>
+            <div className="flex items-center justify-center gap-4">
+              <p className="text-gray-600">
+                Showing {tours.length} active tour{tours.length !== 1 ? "s" : ""}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing || loading}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                {refreshing ? 'Refreshing...' : 'Refresh'}
+              </Button>
+            </div>
           </div>
 
           {tours.length > 0 ? (

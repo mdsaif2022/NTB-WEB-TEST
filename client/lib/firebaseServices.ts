@@ -162,15 +162,34 @@ export const tourService = {
 
   // Listen to tours changes
   onToursChange(callback: (tours: any[]) => void) {
-    if (!realtimeDb) return () => {};
+    console.log('tourService.onToursChange: Setting up listener...');
+    
+    if (!realtimeDb) {
+      console.error('tourService.onToursChange: Firebase Realtime Database not available');
+      return () => {};
+    }
     
     const toursRef = ref(realtimeDb, DB_PATHS.TOURS);
+    console.log('tourService.onToursChange: Listening to path:', DB_PATHS.TOURS);
+    
     const unsubscribe = onValue(toursRef, (snapshot) => {
+      console.log('tourService.onToursChange: Snapshot received', {
+        exists: snapshot.exists(),
+        hasChildren: snapshot.hasChildren(),
+        numChildren: snapshot.numChildren()
+      });
+      
       const tours = snapshot.exists() ? Object.values(snapshot.val()) : [];
+      console.log('tourService.onToursChange: Processed tours count:', tours.length);
       callback(tours);
+    }, (error) => {
+      console.error('tourService.onToursChange: Listener error:', error);
     });
     
-    return () => off(toursRef, 'value', unsubscribe);
+    return () => {
+      console.log('tourService.onToursChange: Unsubscribing listener');
+      off(toursRef, 'value', unsubscribe);
+    };
   }
 };
 

@@ -34,6 +34,7 @@ interface TourContextType {
   getTourById: (id: string | number) => Tour | undefined;
   getActiveTours: () => Tour[];
   refreshTours: () => void;
+  refreshToursFromFirebase: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -281,21 +282,19 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
   // Listen to Firebase Realtime Database changes
   useEffect(() => {
+    console.log('TourContext: Setting up Firebase listener...');
     const unsubscribe = tourService.onToursChange((firebaseTours) => {
-      if (firebaseTours.length > 0) {
-        // Only update if tours actually changed to prevent infinite re-renders
-        setTours(prevTours => {
-          if (prevTours && JSON.stringify(prevTours) === JSON.stringify(firebaseTours)) {
-            console.log('TourContext: Tours unchanged, skipping update');
-            return prevTours;
-          }
-          console.log('TourContext: Tours changed, updating');
-          return firebaseTours;
-        });
-        
-        // Also save to localStorage as backup
-        saveToursToStorage(firebaseTours);
-      }
+      console.log('TourContext: Firebase listener triggered', {
+        firebaseToursCount: firebaseTours.length,
+        sampleTours: firebaseTours.slice(0, 3).map(t => ({ id: t.id, name: t.name, status: t.status }))
+      });
+      
+      // Always update state when Firebase data changes for real-time sync
+      console.log('TourContext: Updating state with Firebase data');
+      setTours(firebaseTours);
+      
+      // Also save to localStorage as backup
+      saveToursToStorage(firebaseTours);
     });
 
     return unsubscribe;
@@ -411,6 +410,21 @@ export function TourProvider({ children }: { children: ReactNode }) {
     setError(null); // Clear any previous errors
   };
 
+  const refreshToursFromFirebase = async () => {
+    console.log('TourContext: Force refreshing tours from Firebase...');
+    setLoading(true);
+    try {
+      const firebaseTours = await tourService.getAllTours();
+      console.log('TourContext: Refreshed tours from Firebase:', firebaseTours.length);
+      setTours(firebaseTours);
+      saveToursToStorage(firebaseTours);
+    } catch (error) {
+      console.error('TourContext: Error refreshing tours from Firebase:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -425,6 +439,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     getTourById,
     getActiveTours,
     refreshTours,
+    refreshToursFromFirebase,
     clearError,
   };
 
