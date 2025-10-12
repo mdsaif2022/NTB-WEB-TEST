@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { tourService } from "@/lib/firebaseServices";
 
 export interface Tour {
-  id: number;
+  id: string | number; // Support both string (Firebase) and number (legacy) IDs
   name: string;
   location: string;
   destination: string;
@@ -29,9 +29,9 @@ interface TourContextType {
   addTour: (
     tour: Omit<Tour, "id" | "rating" | "bookings" | "createdDate">,
   ) => Promise<Tour | null>;
-  updateTour: (id: number, tour: Partial<Tour>) => Promise<void>;
-  deleteTour: (id: number) => Promise<void>;
-  getTourById: (id: number) => Tour | undefined;
+  updateTour: (id: string | number, tour: Partial<Tour>) => Promise<void>;
+  deleteTour: (id: string | number) => Promise<void>;
+  getTourById: (id: string | number) => Tour | undefined;
   getActiveTours: () => Tour[];
   refreshTours: () => void;
   clearError: () => void;
@@ -324,7 +324,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateTour = async (id: number, updatedTour: Partial<Tour>) => {
+  const updateTour = async (id: string | number, updatedTour: Partial<Tour>) => {
     try {
       // Store original tour for potential rollback
       const originalTour = tours.find(tour => tour.id === id);
@@ -367,7 +367,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const deleteTour = async (id: number) => {
+  const deleteTour = async (id: string | number) => {
     try {
       // Store original tour for potential rollback
       const originalTour = tours.find(tour => tour.id === id);
@@ -396,8 +396,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const getTourById = (id: number) => {
-    return tours.find((tour) => tour.id === id);
+  const getTourById = (id: string | number) => {
+    return tours.find((tour) => String(tour.id) === String(id));
   };
 
   const getActiveTours = () => {

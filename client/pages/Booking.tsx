@@ -95,18 +95,30 @@ const getSeatSelectionStorageKey = (tourId: string | number) => `echoForgeSeatSe
 
 export default function Booking() {
   const [searchParams] = useSearchParams();
-  const { getTourById, tours } = useTours();
+  const { getTourById, tours, loading: toursLoading } = useTours();
   const { settings, isLoading: settingsLoading } = useSettings();
   const { currentUser, userData, loading: authLoading } = useFirebaseAuth();
   const tourId = searchParams.get("tour");
-  const selectedTour = tourId ? getTourById(Number(tourId)) : tours[0];
+  const selectedTour = tourId ? getTourById(tourId) : tours[0];
 
-  // Show loading while checking authentication
-  if (authLoading) {
+  // Debug logging
+  useEffect(() => {
+    console.log('Booking: Debug info', {
+      tourId,
+      totalTours: tours.length,
+      selectedTour: selectedTour ? { id: selectedTour.id, name: selectedTour.name } : null,
+      tours: tours.map(t => ({ id: t.id, name: t.name }))
+    });
+  }, [tourId, tours, selectedTour]);
+
+  // Show loading while checking authentication or loading tours
+  if (authLoading || toursLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-600">Loading...</p>
+        <p className="text-gray-600">
+          {authLoading ? "Loading authentication..." : "Loading tours..."}
+        </p>
       </div>
     );
   }
@@ -216,7 +228,13 @@ export default function Booking() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h2 className="text-2xl font-bold text-red-600 mb-4">Tour Not Found</h2>
-        <p className="text-gray-600">The selected tour does not exist. Please go back and select a valid tour.</p>
+        <p className="text-gray-600 mb-4">The selected tour does not exist. Please go back and select a valid tour.</p>
+        <div className="text-sm text-gray-500 mb-4">
+          <p>Debug Info:</p>
+          <p>Tour ID: {tourId}</p>
+          <p>Total Tours: {tours.length}</p>
+          <p>Tours Loading: {toursLoading ? 'Yes' : 'No'}</p>
+        </div>
         <Link to="/tours" className="mt-4 text-blue-600 underline">Back to Tours</Link>
       </div>
     );
