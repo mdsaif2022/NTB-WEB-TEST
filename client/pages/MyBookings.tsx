@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@/contexts/UserContext";
+import { useBookings } from "@/contexts/BookingContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,44 +10,41 @@ import { Link } from "react-router-dom";
 const STATUS_FILTERS = [
   { label: "All", value: "all" },
   { label: "Pending", value: "pending" },
-  { label: "Approved", value: "approved" },
-  { label: "Expired", value: "expired" },
-  { label: "Rejected", value: "rejected" },
+  { label: "Confirmed", value: "confirmed" },
+  { label: "Cancelled", value: "cancelled" },
 ];
 
 // Helper to map booking status to badge variant
 function getBadgeVariant(status: string) {
   switch (status) {
-    case "approved": return "default";
+    case "confirmed": return "default";
     case "pending": return "secondary";
-    case "expired": return "destructive";
-    case "rejected": return "destructive";
+    case "cancelled": return "destructive";
     default: return "outline";
   }
 }
 
 export default function MyBookings() {
   const { userProfile } = useUser();
-  const [bookings, setBookings] = useState<any[]>([]);
+  const { bookings, updateBooking, loading } = useBookings();
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!userProfile) return;
-    setLoading(true);
-    // Bookings are loaded from Firebase BookingContext
-    // No need to fetch from backend API
-    setLoading(false);
-  }, [userProfile]);
+  // Filter bookings for the current user
+  const userBookings = bookings.filter((booking) => 
+    userProfile && booking.user.email === userProfile.email
+  );
 
   const handleCancel = async (bookingId: string) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
-    // Booking cancellation is handled via Firebase BookingContext
-    console.log("Booking cancellation requested for:", bookingId);
-    setBookings(bookings => bookings.map(b => b.id === bookingId ? { ...b, status: "cancelled" } : b));
+    try {
+      await updateBooking(bookingId, { status: "cancelled" });
+      console.log("Booking cancelled successfully:", bookingId);
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+    }
   };
 
-  const filteredBookings = bookings.filter((b) =>
+  const filteredBookings = userBookings.filter((b) =>
     statusFilter === "all" ? true : b.status === statusFilter
   );
 
@@ -96,7 +94,7 @@ export default function MyBookings() {
                       <td className="p-2">{booking.date}</td>
                       <td className="p-2">{booking.tourName}</td>
                       <td className="p-2">{booking.from} → {booking.to}</td>
-                      <td className="p-2">{(booking.seats || []).join(", ")}</td>
+                      <td className="p-2">{(booking.selectedSeats || []).join(", ")}</td>
                       <td className="p-2">
                         <Badge variant={getBadgeVariant(booking.status)}>
                           {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}

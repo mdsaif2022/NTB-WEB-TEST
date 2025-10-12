@@ -26,6 +26,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import Booking from "./pages/Booking";
 import BlogSubmission from "./pages/BlogSubmission";
 import Profile from "./pages/Profile";
+import MyBookings from "./pages/MyBookings";
 import Notifications from "./pages/Notifications";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -85,6 +86,7 @@ const App = () => (
                         <Route path="/booking" element={<Booking />} />
                         <Route path="/blog/submit" element={<BlogSubmission />} />
                         <Route path="/profile" element={<Profile />} />
+                        <Route path="/my-bookings" element={<MyBookings />} />
                         <Route path="/notifications" element={<Notifications />} />
                             <Route path="/firebase-test" element={<FirebaseTest />} />
                             <Route path="/firebase-diagnostics" element={<FirebaseDiagnostics />} />
