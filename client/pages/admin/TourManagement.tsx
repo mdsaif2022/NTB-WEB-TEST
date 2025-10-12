@@ -517,8 +517,16 @@ export default function TourManagement() {
                   <TableRow key={tour.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center text-2xl">
-                          {tour.image}
+                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center overflow-hidden">
+                          {tour.image && (tour.image.startsWith('http') || tour.image.startsWith('data:')) ? (
+                            <img 
+                              src={tour.image} 
+                              alt={tour.name}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          ) : (
+                            <span className="text-2xl">{tour.image || "📍"}</span>
+                          )}
                         </div>
                         <div>
                           <p className="font-medium text-gray-900">

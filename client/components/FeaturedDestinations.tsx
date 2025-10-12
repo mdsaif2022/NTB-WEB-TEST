@@ -49,7 +49,7 @@ export default function FeaturedDestinations() {
                         alt={destination.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                    ) : destination.image && destination.image.startsWith('http') ? (
+                    ) : destination.image && (destination.image.startsWith('http') || destination.image.startsWith('data:')) ? (
                       <img
                         src={destination.image}
                         alt={destination.name}

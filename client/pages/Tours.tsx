@@ -113,7 +113,7 @@ export default function Tours() {
                         alt={tour.name}
                         className="w-full h-full object-cover"
                       />
-                    ) : tour.image && tour.image.startsWith('http') ? (
+                    ) : tour.image && (tour.image.startsWith('http') || tour.image.startsWith('data:')) ? (
                       <img
                         src={tour.image}
                         alt={tour.name}

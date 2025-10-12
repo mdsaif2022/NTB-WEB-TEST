@@ -1215,8 +1215,22 @@ export default function Booking() {
                   <div className="p-6 bg-white">
                     {/* Tour Details */}
                     <div className="flex items-center space-x-4 mb-6">
-                      <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center text-2xl">
-                        {selectedTour.image}
+                      <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center overflow-hidden">
+                        {selectedTour.image && selectedTour.image.startsWith('data:') ? (
+                          <img 
+                            src={selectedTour.image} 
+                            alt={selectedTour.name}
+                            className="w-full h-full object-cover rounded-xl"
+                          />
+                        ) : selectedTour.image ? (
+                          <img 
+                            src={selectedTour.image} 
+                            alt={selectedTour.name}
+                            className="w-full h-full object-cover rounded-xl"
+                          />
+                        ) : (
+                          <MapPin className="w-8 h-8 text-white" />
+                        )}
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-gray-900">{selectedTour.name}</h3>
