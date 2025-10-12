@@ -268,7 +268,6 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
             }
           }
         }
-      }
     });
 
     return unsubscribe;
