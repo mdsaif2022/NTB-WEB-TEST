@@ -454,7 +454,16 @@ export const bookingService = {
     }
     
     try {
+      // First check if the booking exists
       const bookingRef = ref(realtimeDb, `${DB_PATHS.BOOKINGS}/${id}`);
+      const existingSnapshot = await get(bookingRef);
+      
+      if (!existingSnapshot.exists()) {
+        console.error('❌ bookingService.updateBooking: Booking not found with ID:', id);
+        return false;
+      }
+      
+      console.log('🔄 bookingService.updateBooking: Booking exists, proceeding with update');
       console.log('🔄 bookingService.updateBooking: Booking ref path:', `${DB_PATHS.BOOKINGS}/${id}`);
       
       const updates = {
@@ -476,20 +485,63 @@ export const bookingService = {
         message: error.message,
         stack: error.stack
       });
+      
+      // Check for specific Firebase errors
+      if (error.code === 'PERMISSION_DENIED') {
+        console.error('❌ bookingService.updateBooking: Permission denied - check Firebase rules');
+      } else if (error.code === 'NETWORK_ERROR') {
+        console.error('❌ bookingService.updateBooking: Network error - check internet connection');
+      } else if (error.code === 'DATABASE_ERROR') {
+        console.error('❌ bookingService.updateBooking: Database error - check Firebase configuration');
+      }
+      
       return false;
     }
   },
 
   // Delete booking
   async deleteBooking(id: string) {
-    if (!realtimeDb) return false;
+    debugFirebaseConnection();
+    console.log('🗑️ bookingService.deleteBooking: Starting deletion for booking ID:', id);
+    
+    if (!realtimeDb) {
+      console.error('❌ bookingService.deleteBooking: Firebase Realtime Database not available');
+      return false;
+    }
     
     try {
+      // First check if the booking exists
       const bookingRef = ref(realtimeDb, `${DB_PATHS.BOOKINGS}/${id}`);
+      const existingSnapshot = await get(bookingRef);
+      
+      if (!existingSnapshot.exists()) {
+        console.error('❌ bookingService.deleteBooking: Booking not found with ID:', id);
+        return false;
+      }
+      
+      console.log('🗑️ bookingService.deleteBooking: Booking exists, proceeding with deletion');
+      console.log('🗑️ bookingService.deleteBooking: Booking ref path:', `${DB_PATHS.BOOKINGS}/${id}`);
+      
       await remove(bookingRef);
+      console.log('✅ bookingService.deleteBooking: Booking deleted successfully');
       return true;
-    } catch (error) {
-      console.error('Error deleting booking:', error);
+    } catch (error: any) {
+      console.error('❌ bookingService.deleteBooking: Error deleting booking:', error);
+      console.error('❌ bookingService.deleteBooking: Error details:', {
+        code: error.code,
+        message: error.message,
+        stack: error.stack
+      });
+      
+      // Check for specific Firebase errors
+      if (error.code === 'PERMISSION_DENIED') {
+        console.error('❌ bookingService.deleteBooking: Permission denied - check Firebase rules');
+      } else if (error.code === 'NETWORK_ERROR') {
+        console.error('❌ bookingService.deleteBooking: Network error - check internet connection');
+      } else if (error.code === 'DATABASE_ERROR') {
+        console.error('❌ bookingService.deleteBooking: Database error - check Firebase configuration');
+      }
+      
       return false;
     }
   },

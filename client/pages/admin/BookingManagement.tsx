@@ -3,6 +3,7 @@ import { useUser } from "@/contexts/UserContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 
 const STATUS_FILTERS = [
   { label: "All", value: "all" },
@@ -78,10 +79,20 @@ export default function BookingManagement() {
     setActionLoading(bookingId);
     try {
       // Update the booking status directly in Firebase
-      updateBooking(bookingId, { status: "confirmed" });
+      await updateBooking(bookingId, { status: "confirmed" });
       console.log("Booking approved:", bookingId);
+      toast({
+        title: "Success",
+        description: "Booking has been approved successfully.",
+        variant: "default",
+      });
     } catch (error) {
       console.error("Error approving booking:", error);
+      toast({
+        title: "Error",
+        description: "Failed to approve booking. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setActionLoading(null);
     }
@@ -92,10 +103,48 @@ export default function BookingManagement() {
     setActionLoading(bookingId);
     try {
       // Update the booking status directly in Firebase
-      updateBooking(bookingId, { status: "cancelled" });
+      await updateBooking(bookingId, { status: "cancelled" });
       console.log("Booking rejected:", bookingId);
+      toast({
+        title: "Success",
+        description: "Booking has been rejected successfully.",
+        variant: "default",
+      });
     } catch (error) {
       console.error("Error rejecting booking:", error);
+      toast({
+        title: "Error",
+        description: "Failed to reject booking. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Delete booking via Firebase
+  const handleDelete = async (bookingId: string) => {
+    if (!confirm("Are you sure you want to delete this booking? This action cannot be undone.")) {
+      return;
+    }
+    
+    setActionLoading(bookingId);
+    try {
+      // Delete the booking from Firebase
+      await deleteBooking(bookingId);
+      console.log("Booking deleted:", bookingId);
+      toast({
+        title: "Success",
+        description: "Booking has been deleted successfully.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete booking. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setActionLoading(null);
     }
@@ -235,6 +284,15 @@ export default function BookingManagement() {
                           </Button>
                         </>
                       )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                        disabled={actionLoading === booking.id}
+                        onClick={() => handleDelete(booking.id)}
+                      >
+                        Delete
+                      </Button>
                     </td>
                   </tr>
                 ))}

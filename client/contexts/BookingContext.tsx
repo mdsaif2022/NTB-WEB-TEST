@@ -317,40 +317,52 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
     const previousBooking = bookings.find(b => b.id === id);
     const previousStatus = previousBooking?.status;
 
-    setBookings((prev) => {
-      const newBookings = prev.map((booking) =>
-        booking.id === id ? { ...booking, ...updatedBooking } : booking,
-      );
-      
-      const updatedBookingObj = newBookings.find(b => b.id === id);
-      
-      // Dispatch booking update event for real-time sync
-      if (updatedBookingObj) {
-        window.dispatchEvent(new CustomEvent('bookingUpdated', {
-          detail: { 
-            action: 'update', 
-            booking: updatedBookingObj, 
-            allBookings: newBookings,
-            userEmail: updatedBookingObj.user.email,
-            previousStatus: previousStatus
-          }
-        }));
+    try {
+      // Update in Firebase first
+      const success = await bookingService.updateBooking(id, updatedBooking);
+      if (!success) {
+        console.error('Failed to update booking in Firebase');
+        return;
       }
-      
-      return newBookings;
-    });
 
-    // Send user email notification if status changed
-    if (updatedBooking.status && previousStatus && updatedBooking.status !== previousStatus) {
-      const updatedBookingObj = bookings.find(b => b.id === id);
-      if (updatedBookingObj) {
-        try {
-          await emailService.sendUserBookingStatusUpdate(updatedBookingObj, previousStatus, updatedBooking.status);
-          console.log(`Booking status update email sent to user: ${previousStatus} → ${updatedBooking.status}`);
-        } catch (emailError) {
-          console.error("Error sending user booking status update email:", emailError);
+      // Then update local state
+      setBookings((prev) => {
+        const newBookings = prev.map((booking) =>
+          booking.id === id ? { ...booking, ...updatedBooking } : booking,
+        );
+        
+        const updatedBookingObj = newBookings.find(b => b.id === id);
+        
+        // Dispatch booking update event for real-time sync
+        if (updatedBookingObj) {
+          window.dispatchEvent(new CustomEvent('bookingUpdated', {
+            detail: { 
+              action: 'update', 
+              booking: updatedBookingObj, 
+              allBookings: newBookings,
+              userEmail: updatedBookingObj.user.email,
+              previousStatus: previousStatus
+            }
+          }));
+        }
+        
+        return newBookings;
+      });
+
+      // Send user email notification if status changed
+      if (updatedBooking.status && previousStatus && updatedBooking.status !== previousStatus) {
+        const updatedBookingObj = bookings.find(b => b.id === id);
+        if (updatedBookingObj) {
+          try {
+            await emailService.sendUserBookingStatusUpdate(updatedBookingObj, previousStatus, updatedBooking.status);
+            console.log(`Booking status update email sent to user: ${previousStatus} → ${updatedBooking.status}`);
+          } catch (emailError) {
+            console.error("Error sending user booking status update email:", emailError);
+          }
         }
       }
+    } catch (error) {
+      console.error('Error updating booking:', error);
     }
   };
 

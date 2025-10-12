@@ -1,203 +1,103 @@
 import React, { useState, useEffect } from 'react';
 import { realtimeDb } from '@/lib/firebaseConfig';
-import { ref, set, get, remove, push } from 'firebase/database';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ref, get, set, remove } from 'firebase/database';
 
 const FirebaseConnectionTest: React.FC = () => {
-  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'failed'>('checking');
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const [testResults, setTestResults] = useState<string[]>([]);
-  const [isRunningTest, setIsRunningTest] = useState(false);
 
-  const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
-    setTestResults(prev => [...prev, `[${timestamp}] ${message}`]);
+  const addTestResult = (result: string) => {
+    setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${result}`]);
   };
 
-  const testConnection = async () => {
-    addLog('🔍 Testing Firebase Realtime Database connection...');
-    
+  const testFirebaseConnection = async () => {
+    setConnectionStatus('checking');
+    setTestResults([]);
+    addTestResult('Starting Firebase connection test...');
+
     if (!realtimeDb) {
-      addLog('❌ Firebase Realtime Database not initialized');
-      setConnectionStatus('failed');
+      setConnectionStatus('error');
+      setErrorMessage('Firebase Realtime Database not initialized');
+      addTestResult('❌ Firebase Realtime Database not initialized');
       return;
     }
 
     try {
-      addLog('✅ Firebase Realtime Database is initialized');
-      addLog(`📡 Database URL: ${realtimeDb.app.options.databaseURL}`);
-      
-      // Test basic read/write operation
-      const testRef = ref(realtimeDb, 'connectionTest');
-      const testData = {
-        timestamp: new Date().toISOString(),
-        message: 'Connection test successful'
-      };
-      
-      addLog('📝 Writing test data...');
-      await set(testRef, testData);
-      addLog('✅ Test data written successfully');
-      
-      addLog('📖 Reading test data...');
+      // Test 1: Basic connection
+      addTestResult('Testing basic connection...');
+      const testRef = ref(realtimeDb, 'test/connection');
+      await set(testRef, { timestamp: new Date().toISOString(), test: 'connection' });
+      addTestResult('✅ Basic write test passed');
+
+      // Test 2: Read test
+      addTestResult('Testing read operation...');
       const snapshot = await get(testRef);
       if (snapshot.exists()) {
-        const data = snapshot.val();
-        addLog(`✅ Test data read successfully: ${JSON.stringify(data)}`);
+        addTestResult('✅ Read test passed');
       } else {
-        addLog('❌ Test data not found after write');
+        addTestResult('❌ Read test failed - no data found');
       }
-      
-      addLog('🗑️ Cleaning up test data...');
+
+      // Test 3: Delete test
+      addTestResult('Testing delete operation...');
       await remove(testRef);
-      addLog('✅ Test data cleaned up');
-      
+      addTestResult('✅ Delete test passed');
+
+      // Test 4: Bookings path test
+      addTestResult('Testing bookings path access...');
+      const bookingsRef = ref(realtimeDb, 'bookings');
+      const bookingsSnapshot = await get(bookingsRef);
+      addTestResult(`✅ Bookings path accessible (${bookingsSnapshot.exists() ? 'has data' : 'empty'})`);
+
       setConnectionStatus('connected');
-      addLog('🎉 Firebase connection test completed successfully!');
-      
+      addTestResult('🎉 All Firebase tests passed!');
     } catch (error: any) {
-      addLog(`❌ Firebase connection test failed: ${error.message}`);
-      addLog(`❌ Error code: ${error.code || 'Unknown'}`);
-      addLog(`❌ Error details: ${JSON.stringify(error)}`);
-      setConnectionStatus('failed');
-    }
-  };
-
-  const testAdminOperations = async () => {
-    setIsRunningTest(true);
-    addLog('🔍 Testing admin operations...');
-    
-    if (!realtimeDb) {
-      addLog('❌ Firebase Realtime Database not available');
-      setIsRunningTest(false);
-      return;
-    }
-
-    try {
-      // Test blog operations
-      addLog('📝 Testing blog operations...');
-      const blogRef = ref(realtimeDb, 'blogs/test-blog');
-      const blogData = {
-        id: 'test-blog',
-        title: 'Test Blog Post',
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      };
-      
-      await set(blogRef, blogData);
-      addLog('✅ Blog created successfully');
-      
-      // Test blog approval
-      await set(blogRef, { ...blogData, status: 'approved' });
-      addLog('✅ Blog approved successfully');
-      
-      // Test blog rejection
-      await set(blogRef, { ...blogData, status: 'rejected', rejectionReason: 'Test rejection' });
-      addLog('✅ Blog rejected successfully');
-      
-      // Clean up
-      await remove(blogRef);
-      addLog('✅ Blog test data cleaned up');
-      
-      // Test tour operations
-      addLog('🏞️ Testing tour operations...');
-      const tourRef = ref(realtimeDb, 'tours/test-tour');
-      const tourData = {
-        id: 'test-tour',
-        name: 'Test Tour',
-        status: 'active',
-        createdAt: new Date().toISOString()
-      };
-      
-      await set(tourRef, tourData);
-      addLog('✅ Tour created successfully');
-      
-      // Test tour update
-      await set(tourRef, { ...tourData, status: 'inactive' });
-      addLog('✅ Tour updated successfully');
-      
-      // Clean up
-      await remove(tourRef);
-      addLog('✅ Tour test data cleaned up');
-      
-      // Test booking operations
-      addLog('📅 Testing booking operations...');
-      const bookingRef = ref(realtimeDb, 'bookings/test-booking');
-      const bookingData = {
-        id: 'test-booking',
-        user: { name: 'Test User', email: 'test@example.com' },
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      };
-      
-      await set(bookingRef, bookingData);
-      addLog('✅ Booking created successfully');
-      
-      // Test booking approval
-      await set(bookingRef, { ...bookingData, status: 'confirmed' });
-      addLog('✅ Booking approved successfully');
-      
-      // Clean up
-      await remove(bookingRef);
-      addLog('✅ Booking test data cleaned up');
-      
-      addLog('🎉 All admin operations tested successfully!');
-      
-    } catch (error: any) {
-      addLog(`❌ Admin operations test failed: ${error.message}`);
-      addLog(`❌ Error code: ${error.code || 'Unknown'}`);
-      addLog(`❌ Error details: ${JSON.stringify(error)}`);
-    } finally {
-      setIsRunningTest(false);
+      setConnectionStatus('error');
+      setErrorMessage(error.message);
+      addTestResult(`❌ Firebase test failed: ${error.message}`);
+      addTestResult(`Error code: ${error.code || 'unknown'}`);
     }
   };
 
   useEffect(() => {
-    testConnection();
+    testFirebaseConnection();
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-emerald-800">Firebase Connection Test</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <span className="font-semibold">Connection Status:</span>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              connectionStatus === 'connected' ? 'bg-green-100 text-green-800' : 
-              connectionStatus === 'failed' ? 'bg-red-100 text-red-800' : 
-              'bg-yellow-100 text-yellow-800'
-            }`}>
-              {connectionStatus === 'connected' ? 'Connected' : 
-               connectionStatus === 'failed' ? 'Failed' : 'Checking...'}
-            </span>
-          </div>
+    <div className="p-4 border rounded-lg bg-gray-50">
+      <h3 className="text-lg font-semibold mb-4">Firebase Connection Test</h3>
+      
+      <div className="mb-4">
+        <div className="flex items-center gap-2">
+          <div className={`w-3 h-3 rounded-full ${
+            connectionStatus === 'checking' ? 'bg-yellow-500' :
+            connectionStatus === 'connected' ? 'bg-green-500' : 'bg-red-500'
+          }`}></div>
+          <span className="font-medium">
+            {connectionStatus === 'checking' ? 'Checking...' :
+             connectionStatus === 'connected' ? 'Connected' : 'Error'}
+          </span>
+        </div>
+        {errorMessage && (
+          <p className="text-red-600 text-sm mt-1">{errorMessage}</p>
+        )}
+      </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={testConnection} variant="outline" size="sm">
-              Test Connection
-            </Button>
-            <Button 
-              onClick={testAdminOperations} 
-              variant="outline" 
-              size="sm" 
-              disabled={isRunningTest || connectionStatus !== 'connected'}
-            >
-              {isRunningTest ? 'Testing...' : 'Test Admin Operations'}
-            </Button>
+      <div className="space-y-1">
+        {testResults.map((result, index) => (
+          <div key={index} className="text-sm font-mono">
+            {result}
           </div>
+        ))}
+      </div>
 
-          <div className="bg-gray-100 p-4 rounded-lg max-h-64 overflow-y-auto">
-            <h3 className="font-semibold mb-2">Test Logs:</h3>
-            {testResults.map((result, index) => (
-              <div key={index} className="text-sm font-mono text-gray-700">
-                {result}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <button
+        onClick={testFirebaseConnection}
+        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
+        Retest Connection
+      </button>
     </div>
   );
 };

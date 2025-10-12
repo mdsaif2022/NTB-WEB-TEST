@@ -21,6 +21,7 @@ import { useBlogs } from "@/contexts/BlogContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useBookings } from "@/contexts/BookingContext";
 import { Helmet } from 'react-helmet-async';
+import FirebaseConnectionTest from "@/components/FirebaseConnectionTest";
 
 export default function AdminDashboard() {
   const { isAdmin } = useUser();
@@ -327,6 +328,11 @@ export default function AdminDashboard() {
               </Link>
             </CardContent>
           </Card>
+      </div>
+
+      {/* Firebase Connection Test */}
+      <div className="mb-8">
+        <FirebaseConnectionTest />
       </div>
 
       {/* System Overview */}
