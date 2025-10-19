@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import CloudinaryUpload from "@/components/CloudinaryUpload";
+import FirebaseConnectionTest from "@/components/FirebaseConnectionTest";
 import {
   Select,
   SelectContent,
@@ -207,8 +208,8 @@ export default function NewTour() {
     setIsSaving(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("NewTour: Starting tour creation process...");
+      console.log("NewTour: Tour data to be created:", tourData);
 
       // Add the tour to the context
       const newTour = await addTour({
@@ -228,8 +229,10 @@ export default function NewTour() {
         enableSeatSelection: tourData.enableSeatSelection,
       });
 
+      console.log("NewTour: addTour result:", newTour);
+
       if (newTour) {
-        console.log("New tour created:", newTour);
+        console.log("✅ NewTour: Tour created successfully:", newTour);
 
         // Show success message
         alert(`Tour "${newTour.name}" has been successfully created! It will now appear on the user site.`);
@@ -237,11 +240,24 @@ export default function NewTour() {
         // Navigate back to tours management
         navigate("/admin/tours");
       } else {
-        throw new Error("Failed to create tour");
+        console.error("❌ NewTour: addTour returned null - tour creation failed");
+        throw new Error("Failed to create tour - addTour returned null. Check Firebase connection and permissions.");
       }
-    } catch (error) {
-      alert("Failed to create tour. Please try again.");
-      console.error("Save error:", error);
+    } catch (error: any) {
+      console.error("❌ NewTour: Save error:", error);
+      
+      // Show more specific error message
+      let errorMessage = "Failed to create tour. Please try again.";
+      
+      if (error.message && error.message.includes("Firebase")) {
+        errorMessage = "Firebase connection error. Please check your internet connection and try again.";
+      } else if (error.message && error.message.includes("Permission")) {
+        errorMessage = "Permission denied. Please check Firebase security rules.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -280,6 +296,11 @@ export default function NewTour() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Firebase Connection Test */}
+      <div className="mb-6">
+        <FirebaseConnectionTest />
       </div>
 
       <form onSubmit={handleSave} className="max-w-4xl">

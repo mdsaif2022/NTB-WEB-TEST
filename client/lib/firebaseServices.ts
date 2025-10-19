@@ -106,12 +106,23 @@ export const tourService = {
 
   // Add new tour
   async addTour(tourData: any) {
-    if (!realtimeDb) return null;
+    console.log('tourService.addTour: Starting tour creation...');
+    console.log('tourService.addTour: Tour data:', tourData);
+    
+    if (!realtimeDb) {
+      console.error('❌ tourService.addTour: Firebase Realtime Database not available');
+      console.error('❌ tourService.addTour: Please check Firebase configuration and ensure Realtime Database is enabled');
+      return null;
+    }
     
     try {
+      console.log('tourService.addTour: Firebase Realtime Database is available');
       const toursRef = ref(realtimeDb, DB_PATHS.TOURS);
+      console.log('tourService.addTour: Tours ref path:', DB_PATHS.TOURS);
+      
       const newTourRef = push(toursRef);
       const tourId = newTourRef.key;
+      console.log('tourService.addTour: Generated tour ID:', tourId);
       
       const tour = {
         id: tourId,
@@ -120,13 +131,31 @@ export const tourService = {
         updatedAt: new Date().toISOString()
       };
       
+      console.log('tourService.addTour: Tour object before cleaning:', tour);
+      
       // Remove undefined values to prevent Firebase errors
       const cleanedTour = removeUndefinedValues(tour);
+      console.log('tourService.addTour: Cleaned tour object:', cleanedTour);
       
+      console.log('tourService.addTour: Attempting to write to Firebase...');
       await set(newTourRef, cleanedTour);
+      console.log('✅ tourService.addTour: Tour created successfully in Firebase');
+      
       return cleanedTour;
-    } catch (error) {
-      console.error('Error adding tour:', error);
+    } catch (error: any) {
+      console.error('❌ tourService.addTour: Error adding tour:', error);
+      console.error('❌ tourService.addTour: Error code:', error.code);
+      console.error('❌ tourService.addTour: Error message:', error.message);
+      
+      // Check for specific Firebase errors
+      if (error.code === 'PERMISSION_DENIED') {
+        console.error('❌ tourService.addTour: Permission denied - check Firebase security rules');
+      } else if (error.code === 'UNAVAILABLE') {
+        console.error('❌ tourService.addTour: Firebase service unavailable');
+      } else if (error.code === 'NETWORK_ERROR') {
+        console.error('❌ tourService.addTour: Network error - check internet connection');
+      }
+      
       return null;
     }
   },
