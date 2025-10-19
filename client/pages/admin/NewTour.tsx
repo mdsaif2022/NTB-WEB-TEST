@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import CloudinaryUpload from "@/components/CloudinaryUpload";
 import FirebaseConnectionTest from "@/components/FirebaseConnectionTest";
+import AuthDebug from "@/components/AuthDebug";
+import FirebaseRulesChecker from "@/components/FirebaseRulesChecker";
 import {
   Select,
   SelectContent,
@@ -301,6 +303,16 @@ export default function NewTour() {
       {/* Firebase Connection Test */}
       <div className="mb-6">
         <FirebaseConnectionTest />
+      </div>
+
+      {/* Authentication Debug */}
+      <div className="mb-6">
+        <AuthDebug />
+      </div>
+
+      {/* Firebase Rules Checker */}
+      <div className="mb-6">
+        <FirebaseRulesChecker />
       </div>
 
       <form onSubmit={handleSave} className="max-w-4xl">
