@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { realtimeDb } from '@/lib/firebaseConfig';
 import { ref, get, set, remove } from 'firebase/database';
+import { useAuth } from '@/contexts/FirebaseAuthContext';
 
 const FirebaseConnectionTest: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [testResults, setTestResults] = useState<string[]>([]);
+  const { currentUser } = useAuth();
 
   const addTestResult = (result: string) => {
     setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${result}`]);
@@ -16,6 +18,16 @@ const FirebaseConnectionTest: React.FC = () => {
     setTestResults([]);
     addTestResult('Starting Firebase connection test...');
 
+    // Check authentication first
+    if (!currentUser) {
+      setConnectionStatus('error');
+      setErrorMessage('User not authenticated');
+      addTestResult('❌ User not authenticated - please log in');
+      return;
+    }
+
+    addTestResult(`✅ User authenticated: ${currentUser.email} (UID: ${currentUser.uid})`);
+
     if (!realtimeDb) {
       setConnectionStatus('error');
       setErrorMessage('Firebase Realtime Database not initialized');
@@ -24,10 +36,14 @@ const FirebaseConnectionTest: React.FC = () => {
     }
 
     try {
-      // Test 1: Basic connection
+      // Test 1: Basic connection using tours path (which is allowed)
       addTestResult('Testing basic connection...');
-      const testRef = ref(realtimeDb, 'test/connection');
-      await set(testRef, { timestamp: new Date().toISOString(), test: 'connection' });
+      const testRef = ref(realtimeDb, 'tours/test-connection');
+      await set(testRef, { 
+        timestamp: new Date().toISOString(), 
+        test: 'connection',
+        userId: currentUser.uid 
+      });
       addTestResult('✅ Basic write test passed');
 
       // Test 2: Read test
@@ -50,6 +66,12 @@ const FirebaseConnectionTest: React.FC = () => {
       const bookingsSnapshot = await get(bookingsRef);
       addTestResult(`✅ Bookings path accessible (${bookingsSnapshot.exists() ? 'has data' : 'empty'})`);
 
+      // Test 5: Settings path test
+      addTestResult('Testing settings path access...');
+      const settingsRef = ref(realtimeDb, 'settings');
+      const settingsSnapshot = await get(settingsRef);
+      addTestResult(`✅ Settings path accessible (${settingsSnapshot.exists() ? 'has data' : 'empty'})`);
+
       setConnectionStatus('connected');
       addTestResult('🎉 All Firebase tests passed!');
     } catch (error: any) {
@@ -57,6 +79,12 @@ const FirebaseConnectionTest: React.FC = () => {
       setErrorMessage(error.message);
       addTestResult(`❌ Firebase test failed: ${error.message}`);
       addTestResult(`Error code: ${error.code || 'unknown'}`);
+      
+      // Additional debugging info
+      if (error.code === 'PERMISSION_DENIED') {
+        addTestResult('💡 This suggests Firebase rules are blocking access');
+        addTestResult('💡 Make sure you have applied the simplified rules');
+      }
     }
   };
 
@@ -82,6 +110,14 @@ const FirebaseConnectionTest: React.FC = () => {
         {errorMessage && (
           <p className="text-red-600 text-sm mt-1">{errorMessage}</p>
         )}
+        
+        {/* Authentication Status */}
+        <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
+          <strong>Auth Status:</strong> {currentUser ? 
+            `✅ Logged in as ${currentUser.email} (${currentUser.uid})` : 
+            '❌ Not authenticated'
+          }
+        </div>
       </div>
 
       <div className="space-y-1">
